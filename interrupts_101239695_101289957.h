@@ -9,4 +9,6 @@
 
 void routineScheduler();
 void memorySetup();
+void InputFileProcesser(FILE* traceFilePointer);
+
 #endif
