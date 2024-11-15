@@ -21,7 +21,7 @@ struct PCB {
     unsigned int IO_Freq;
     unsigned int IO_Duration;
     unsigned int Remaining_CPU;
-    unsigned int partitionInUse;
+    unsigned int partitionInUse = NULL;
     enum State {            // Current state of the process
         NEW, READY, RUNNING, WAITING, TERMINATED
     } state;

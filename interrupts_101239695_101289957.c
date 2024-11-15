@@ -43,6 +43,10 @@ void allocateMemory(struct PCB* pcb) {
     }
 }
 
+void freeMemory(struct PCB* pcb) {
+   partitionArray[pcb->partitionInUse - 1].occupyingPID = -1;
+   pcb->partitionInUse = NULL;
+}
 
 void routineScheduler(){
     // scheduler called
