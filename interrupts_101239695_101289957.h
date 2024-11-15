@@ -38,4 +38,5 @@ void allocateMemory(struct PCB* pcb);
 void freeMemory(struct PCB* pcb);
 void recordStateTransition(Struct PCB* pcb, int oldState, int newState);
 void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree);
+
 #endif

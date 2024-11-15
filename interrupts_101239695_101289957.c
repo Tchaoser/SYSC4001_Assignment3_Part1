@@ -1,25 +1,6 @@
 #include "interrupts_101239695_101289957.h"
 #define BUFFER_SIZE 32
 
-struct partition {
-    unsigned int number;
-    unsigned int size;
-    int occupyingPID;
-};
-
-struct PCB {
-    unsigned int PID;
-    unsigned int CPU_Time;
-    unsigned int Arrival_Time;
-    unsigned int Mem_Size;
-    unsigned int IO_Freq;
-    unsigned int IO_Duration;
-    unsigned int Remaining_CPU;
-    unsigned int partitionInUse;
-    enum State {            // Current state of the process
-        NEW, READY, RUNNING, WAITING, TERMINATED
-    } state;
-};
 
 // instantiating arrays
 struct partition partitionArray[6];
