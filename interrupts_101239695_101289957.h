@@ -8,5 +8,5 @@
 #include <time.h>
 
 void routineScheduler();
-
+void memorySetup();
 #endif

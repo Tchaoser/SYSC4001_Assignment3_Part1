@@ -39,6 +39,17 @@ FILE* traceFilePointer; // create a pointer to the trace file
 FILE* outputFilePointer; // create a pointer to the output file
 char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each line from the trace file
 
+
+void memorySetup() {
+    partitionArray[0].number = 1; partitionArray[0].size = 40; partitionArray[0].occupyingPID = -1;
+    partitionArray[1].number = 2; partitionArray[1].size = 25; partitionArray[1].occupyingPID = -1;
+    partitionArray[2].number = 3; partitionArray[2].size = 15; partitionArray[2].occupyingPID = -1;
+    partitionArray[3].number = 4; partitionArray[3].size = 10; partitionArray[3].occupyingPID = -1;
+    partitionArray[4].number = 5; partitionArray[4].size = 8; partitionArray[4].occupyingPID = -1;
+    partitionArray[5].number = 6; partitionArray[5].size = 2; // strcpy(partitionArray[5].code, argv[1]); // argv[1]
+}
+
+
 void routineScheduler(){
     // scheduler called
 }
@@ -58,12 +69,7 @@ int main(int argc, char* argv[])
     outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
 
     // initializing partition array
-    partitionArray[0].number = 1; partitionArray[0].size = 40; partitionArray[0].occupyingPID = -1;
-    partitionArray[1].number = 2; partitionArray[1].size = 25; partitionArray[1].occupyingPID = -1;
-    partitionArray[2].number = 3; partitionArray[2].size = 15; partitionArray[2].occupyingPID = -1;
-    partitionArray[3].number = 4; partitionArray[3].size = 10; partitionArray[3].occupyingPID = -1;
-    partitionArray[4].number = 5; partitionArray[4].size = 8; partitionArray[4].occupyingPID = -1;
-    partitionArray[5].number = 6; partitionArray[5].size = 2; // strcpy(partitionArray[5].code, argv[1]); // argv[1]
+    memorySetup();
 
     // system_status initial print
     //printSystemStatus();
