@@ -46,7 +46,7 @@ void memorySetup() {
     partitionArray[2].number = 3; partitionArray[2].size = 15; partitionArray[2].occupyingPID = -1;
     partitionArray[3].number = 4; partitionArray[3].size = 10; partitionArray[3].occupyingPID = -1;
     partitionArray[4].number = 5; partitionArray[4].size = 8; partitionArray[4].occupyingPID = -1;
-    partitionArray[5].number = 6; partitionArray[5].size = 2; // strcpy(partitionArray[5].code, argv[1]); // argv[1]
+    partitionArray[5].number = 6; partitionArray[5].size = 2; partitionArray[5].occupyingPID = -1;
 }
 
 
