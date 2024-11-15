@@ -174,7 +174,7 @@ void runFORK(int vector, unsigned int pcAddress, int FORKBodyRunTime, FILE* outp
     PCBArray[pcbIndex].partitionInUse = PCBArray[0].partitionInUse;
 
     // print status
-    printSystemStatus();
+    //printSystemStatus();
 
     // OVERHEAD
     // IRET
@@ -272,7 +272,7 @@ void runEXEC(int vector, unsigned int pcAddress, char *theProgramName, int EXECB
     totalSystemRunTime += Time5;
 
     // print status
-    printSystemStatus();
+    //printSystemStatus();
 
     // OVERHEAD
     // IRET
@@ -497,7 +497,7 @@ int main(int argc, char* argv[])
     partitionArray[5].number = 6; partitionArray[5].size = 2; strcpy(partitionArray[5].code, argv[1]); // argv[1]
 
     // system_status initial print
-    printSystemStatus();
+    //printSystemStatus();
 
     runProgram(traceFilePointer);
 
