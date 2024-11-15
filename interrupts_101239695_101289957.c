@@ -7,11 +7,6 @@ struct partition {
     int occupyingPID;
 };
 
-struct program {
-    char name[20];
-    unsigned int sizeWhenLoaded;
-};
-
 struct PCB {
     unsigned int PID;
     unsigned int CPU_Time;
@@ -24,12 +19,10 @@ struct PCB {
     enum State {            // Current state of the process
         NEW, READY, RUNNING, WAITING, TERMINATED
     } state;
-    struct program theProgram;
 };
 
 // instantiating arrays
 struct partition partitionArray[6];
-struct program programArray[100];
 struct PCB PCBArray[100];
 
 // =-=     
@@ -52,45 +45,8 @@ void routineScheduler(){
 
 int main(int argc, char* argv[])
 {
-    strcpy(initName, argv[1]); // argv[1]
-
-    // assign external_files.txt to externalFilePointer in read mode
-    externalFilePointer = fopen("external_files_101239695_101289957.txt", "r");
-
-    // initializing program array
-    // for loop, basically a while "there is still another line" loop with an i counter 
-    // which increases with each line to represent proper program array index
-
-    int c = 0;
-
-    while (fgets(buffer, BUFFER_SIZE, externalFilePointer)){
-
-        // programName, programSize instruction parsing
-        struct program theProgram; // create a new program theProgram
-        char *token = strtok(buffer, " "); // "programName,"
-        token[strlen(token) - 1] = '\0'; // "programName"
-        char name[20];
-        strcpy(name, token);
-        strcpy(theProgram.name, strcat(name, ".txt")); // saving "programName.txt" in theProgram.name
-        token = strtok(NULL, " "); // "programSize"
-        theProgram.sizeWhenLoaded = atoi(token); // saving "programSize" in theProgram.sizeWhenLoaded
-        
-        // store this program in programArray
-        programArray[c] = theProgram;
-
-        c++;
-    }
-
     // initializing pcb array
-    PCBArray[0].PID = 0;
-    strcpy(PCBArray[0].theProgram.name, argv[1]); // argv[1]
-
-    PCBArray[0].theProgram.sizeWhenLoaded = 1;
-    PCBArray[0].partitionInUse = 6;
-
-    for (int i = 1; i < 100; i++){
-        PCBArray[i].theProgram.sizeWhenLoaded = 0;
-    }
+    // todo
 
     // assign MyTraceFile1.txt to traceFilePointer in read mode
     traceFilePointer = fopen(argv[1], "r"); // argv[1]
@@ -112,12 +68,13 @@ int main(int argc, char* argv[])
     // system_status initial print
     //printSystemStatus();
 
-    runProgram(traceFilePointer);
+    // runProgram(traceFilePointer);
 
     // End of instructions, close program
 
     fclose(traceFilePointer);
     fclose(outputFilePointer);
+    fclose(outputSecondFilePointer);
     return 0;   
 
     /*
