@@ -93,6 +93,9 @@ int main(int argc, char* argv[])
     // assign system_status.txt to outputSecondFilePointer in write mode
     outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
 
+    // load PCBs from input file
+    InputFileProcesser(traceFilePointer);
+
     // system_status initial print
     //printSystemStatus();
 
