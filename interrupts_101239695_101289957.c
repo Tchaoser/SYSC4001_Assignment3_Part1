@@ -437,39 +437,6 @@ void runProgram(FILE* currentProgram){
     }
 }
 
-void printSystemStatus(){
-    fprintf(outputSecondFilePointer, "! -----------------------------------------------------------!\n");
-    fprintf(outputSecondFilePointer, "Save Time: %d ms\n", totalSystemRunTime);
-    fprintf(outputSecondFilePointer, "+--------------------------------------------+\n");
-    fprintf(outputSecondFilePointer, "| PID | Program Name | Partition Number | size |\n");
-    fprintf(outputSecondFilePointer, "+--------------------------------------------+\n");
-
-    // loop through the PCB table
-    for (int i = 0; i < 100; i++){
-        if (PCBArray[i].theProgram.sizeWhenLoaded == 0){
-            // unset PCB
-            break;
-        }
-
-        char displayName[20];
-        
-        if (strcmp(PCBArray[i].theProgram.name, initName) == 0){
-            // if the program's name is the init trace file
-            strcpy(displayName, "init");
-        }
-        else{
-            // the unique program name must have its .txt stripped for display purposes
-            char *token = strtok(PCBArray[i].theProgram.name, ".");
-            strcpy(displayName, token);
-        }
-
-        fprintf(outputSecondFilePointer, "|  %u |     %s |                %u |    %u |\n", PCBArray[i].PID, displayName, PCBArray[i].partitionInUse, PCBArray[i].theProgram.sizeWhenLoaded);
-    }
-
-    fprintf(outputSecondFilePointer, "+--------------------------------------------+\n");
-    fprintf(outputSecondFilePointer, "! -----------------------------------------------------------!\n");
-}
-
 int main(int argc, char* argv[])
 {
     strcpy(initName, argv[1]); // argv[1]
