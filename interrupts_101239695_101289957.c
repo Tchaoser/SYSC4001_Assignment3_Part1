@@ -56,15 +56,33 @@ void routineScheduler(){
 
 
 void InputFileProcesser(FILE* traceFilePointer) {
-    
+    // 0, 1, 0, 50, 10, 1 instruction parsing
+    unsigned int counter = 0;
+
+    while(fgets(buffer, BUFFER_SIZE, traceFilePointer)) {
+        char *token = strtok(buffer, ","); // "0"
+        PCBArray[counter].PID = atoi(token);
+        char *token = strtok(buffer, ","); // "1"
+        PCBArray[counter].Mem_Size = atoi(token);
+        char *token = strtok(buffer, ","); // "0"
+        PCBArray[counter].Arrival_Time = atoi(token);
+        char *token = strtok(buffer, ","); // "50"
+        PCBArray[counter].CPU_Time = atoi(token);
+        char *token = strtok(buffer, ","); // "10"
+        PCBArray[counter].IO_Freq = atoi(token);
+        char *token = strtok(buffer, ","); // "1"
+        PCBArray[counter].IO_Duration = atoi(token);
+
+        counter++;
+    }
 }
 
 
 
 int main(int argc, char* argv[])
 {
-    // initializing pcb array
-    // todo
+    // initializing partition array and pcb array
+    memorySetup();
 
     // assign MyTraceFile1.txt to traceFilePointer in read mode
     traceFilePointer = fopen(argv[1], "r"); // argv[1]
@@ -74,9 +92,6 @@ int main(int argc, char* argv[])
 
     // assign system_status.txt to outputSecondFilePointer in write mode
     outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
-
-    // initializing partition array
-    memorySetup();
 
     // system_status initial print
     //printSystemStatus();
