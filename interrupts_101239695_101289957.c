@@ -4,7 +4,7 @@
 struct partition {
     unsigned int number;
     unsigned int size;
-    char code[20];
+    int occupyingPID;
 };
 
 struct program {
@@ -229,7 +229,7 @@ void runEXEC(int vector, unsigned int pcAddress, char *theProgramName, int EXECB
     int bestSizeDifference = partitionArray[0].size - PCBArray[pcbIndex].theProgram.sizeWhenLoaded;
 
     for (int k = 0; k < 6; k++){
-        if (strcmp(partitionArray[k].code, "free") == 0){
+        if (partitionArray[k].occupyingPID  == -1){
             // partition is available for consideration
             int tempDifference = partitionArray[k].size - PCBArray[pcbIndex].theProgram.sizeWhenLoaded;
             if (tempDifference >= 0 && tempDifference < bestSizeDifference){
@@ -242,7 +242,7 @@ void runEXEC(int vector, unsigned int pcAddress, char *theProgramName, int EXECB
     PCBArray[pcbIndex].partitionInUse = partitionArray[partitionIndex].number;
 
     // match partition to new data (change code from free to the current program name)
-    strcpy(partitionArray[partitionIndex].code, PCBArray[pcbIndex].theProgram.name);
+    // partitionArray[partitionIndex].occupyingPID = PCBArray[pcbIndex].theProgram.PID;
 
     // randomly divide EXECBodyRunTime between the 5 tasks in EXEC body
     int firstDivision = EXECBodyRunTime/5;
@@ -489,12 +489,12 @@ int main(int argc, char* argv[])
     outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
 
     // initializing partition array
-    partitionArray[0].number = 1; partitionArray[0].size = 40; strcpy(partitionArray[0].code, "free");
-    partitionArray[1].number = 2; partitionArray[1].size = 25; strcpy(partitionArray[1].code, "free");
-    partitionArray[2].number = 3; partitionArray[2].size = 15; strcpy(partitionArray[2].code, "free");
-    partitionArray[3].number = 4; partitionArray[3].size = 10; strcpy(partitionArray[3].code, "free");
-    partitionArray[4].number = 5; partitionArray[4].size = 8; strcpy(partitionArray[4].code, "free");
-    partitionArray[5].number = 6; partitionArray[5].size = 2; strcpy(partitionArray[5].code, argv[1]); // argv[1]
+    partitionArray[0].number = 1; partitionArray[0].size = 40; partitionArray[0].occupyingPID = -1;
+    partitionArray[1].number = 2; partitionArray[1].size = 25; partitionArray[1].occupyingPID = -1;
+    partitionArray[2].number = 3; partitionArray[2].size = 15; partitionArray[2].occupyingPID = -1;
+    partitionArray[3].number = 4; partitionArray[3].size = 10; partitionArray[3].occupyingPID = -1;
+    partitionArray[4].number = 5; partitionArray[4].size = 8; partitionArray[4].occupyingPID = -1;
+    partitionArray[5].number = 6; partitionArray[5].size = 2; // strcpy(partitionArray[5].code, argv[1]); // argv[1]
 
     // system_status initial print
     //printSystemStatus();
