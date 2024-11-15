@@ -30,6 +30,19 @@ void memorySetup() {
     partitionArray[5].number = 6; partitionArray[5].size = 2; partitionArray[5].occupyingPID = -1;
 }
 
+void allocateMemory(struct PCB* pcb) {
+    for (int i = 0; i < 6; i++ ) {
+        if (partitionArray[i].occupyingPID == -1) {
+            if (pcb->Mem_Size <= partitionArray[i].size) {
+                partitionArray[i].occupyingPID = pcb->PID;
+                pcb->partitionInUse = partitionArray[i]->number; 
+                pcb->state = READY;
+                break;
+            }
+        }
+    }
+}
+
 
 void routineScheduler(){
     // scheduler called
