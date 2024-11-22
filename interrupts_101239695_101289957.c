@@ -69,6 +69,19 @@ Boolean programRunning(){
     return false;
 }
 
+int readyQueToActivate(ArrayList<int[2]> ready_que) {
+    int shortest_index = 0;
+    for(int i = 0; i< this.ready_que.size(); i++) {
+        if (ready_que.get(i).get(1) > shortest_index) {
+            shortest_index = this.ready_que.get(i).get(1);
+        }
+    }
+
+
+    return ready_que.get(shortest_index).get(0);
+}
+
+
 void FcfsScheduler() {
     ArrayList<int[2]> ready_que; //ready que
     while (!programs_done()) {
