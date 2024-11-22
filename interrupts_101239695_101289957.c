@@ -50,7 +50,8 @@ void freeMemory(struct PCB* pcb) {
 }
 
 void FcfsScheduler() {
-    unsigned int CPU 
+    ArrayList<int> ready_que;
+    for
 
 }
 
