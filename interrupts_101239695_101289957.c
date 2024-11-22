@@ -49,13 +49,34 @@ void freeMemory(struct PCB* pcb) {
    pcb->partitionInUse = NULL;
 }
 
-void FcfsScheduler() {
-    ArrayList<int> ready_que;
+
+Boolean programs_done() {
     for (int i = 0; PCBArray[i] != NULL; i++) {
-        if (PCBArray[i].Arrival_Time == cpu_time) {
-            ready_que.add(PCBArray[cpu_time].PID);
+        if (PCBArray[i].state != TERMINATED) {
+            return false;
         }
     }
+    return true;
+}
+
+void FcfsScheduler() {
+    ArrayList<int> ready_que;
+
+    while (!programs_done()) {
+        for (int i = 0; PCBArray[i] != NULL; i++) {
+            if (PCBArray[i].Arrival_Time == cpu_time) {
+                ready_que.add(PCBArray[cpu_time].PID);
+                PCBArray[i].state = READY;
+            }
+        }
+
+        for () {
+
+        }
+
+    }
+
+
 
 }
 
