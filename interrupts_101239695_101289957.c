@@ -51,7 +51,11 @@ void freeMemory(struct PCB* pcb) {
 
 void FcfsScheduler() {
     ArrayList<int> ready_que;
-    for
+    for (int i = 0; PCBArray[i] != NULL; i++) {
+        if (PCBArray[i].Arrival_Time == cpu_time) {
+            ready_que.add(PCBArray[cpu_time].PID);
+        }
+    }
 
 }
 
