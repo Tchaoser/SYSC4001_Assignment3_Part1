@@ -48,6 +48,20 @@ void freeMemory(struct PCB* pcb) {
    pcb->partitionInUse = NULL;
 }
 
+void FcfsScheduler() {
+
+}
+
+void PriorityScheduler() {
+
+}
+
+
+void RoundRobinScheduler() {
+
+}
+
+
 void routineScheduler(){
     // scheduler called
 }
@@ -73,6 +87,14 @@ void InputFileProcesser(FILE* traceFilePointer) {
 
         counter++;
     }
+}
+
+void recordStateTransition(Struct PCB* pcb, int oldState, int newState) {
+
+}
+
+void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree) {
+    
 }
 
 
