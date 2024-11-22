@@ -76,16 +76,18 @@ void FcfsScheduler() {
                             // set partition and pcb information to match each other
                             PCBArray[i].partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
+                            ready_que.add(PCBArray[i].PID);
+                            PCBArray[i].state = READY;
                             break; // break because the search is over
                         }
                     }
                 }    
-
-                ready_que.add(PCBArray[cpu_time].PID);
-                PCBArray[i].state = READY;
             }
 
+            // maybe
         }
+
+        // for loop
 
         cpu_time++;
     }
