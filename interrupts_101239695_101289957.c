@@ -70,14 +70,25 @@ Boolean programRunning(){
 }
 
 int readyQueToActivate(ArrayList<int[2]> ready_que) {
-    int shortest_index = 0;
-    for(int i = 0; i< this.ready_que.size(); i++) {
-        if (ready_que.get(i).get(1) > shortest_index) {
-            shortest_index = this.ready_que.get(i).get(1);
+    int shortest_index = ready_que.get(0).get(0);
+    int shortest_time = ready_que.get(0).get(1);
+
+    for(int i = 1; i< this.ready_que.size(); i++) {
+        if (ready_que.get(i).get(1) < shortest_time) {
+            shortest_index = this.ready_que.get(i).get(0);
+            shortest_time = this.ready_que.get(i).get(1);
         }
     }
 
+    for (int i = 0; i < this.ready_que.size(); i++){
+        if (ready_que.get(i).get(1) = shortest_time){
+            if (PCBArray[ready_que.get(i).get(0)].PID < PCBArray[shortest_index].PID){
+                shortest_index = ready_que.get(i).get(0);
+            }
+        }
+    }
 
+    // we know have the index of the pcb with the earliest arrival time and the lowest pid
     return ready_que.get(shortest_index).get(0);
 }
 
