@@ -9,6 +9,7 @@ struct PCB PCBArray[100];
 // =-=     
 bool modeBit = 0;
 int totalSystemRunTime = 0;
+unsigned int cpu_time = 0;
 char initName[20];
 // initializing vector table
 unsigned int vectorTable[] = {0X01E3, 0X029C, 0X0695, 0X042B, 0X0292, 0X048B, 0X0639, 0X00BD, 0X06EF, 0X036C, 0X07B0, 0X01F8, 0X03B9, 0X06C7, 0X0165, 0X0584, 0X02DF, 0X05B3, 0X060A, 0X0765, 0X07B7, 0X0523, 0X03B7, 0X028C, 0X05E8, 0X05D3};
@@ -49,6 +50,7 @@ void freeMemory(struct PCB* pcb) {
 }
 
 void FcfsScheduler() {
+    unsigned int CPU 
 
 }
 
@@ -89,12 +91,12 @@ void InputFileProcesser(FILE* traceFilePointer) {
     }
 }
 
-void recordStateTransition(Struct PCB* pcb, int oldState, int newState) {
+void recordStateTransition(int transiton, Struct PCB* pcb, int oldState, int newState) {
 
 }
 
 void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree) {
-    
+
 }
 
 
