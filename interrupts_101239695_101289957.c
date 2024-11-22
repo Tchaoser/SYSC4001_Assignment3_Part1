@@ -63,13 +63,27 @@ void FcfsScheduler() {
     ArrayList<int> ready_que; //ready que
     while (!programs_done()) {
         for (int i = 0; PCBArray[i] != NULL; i++) { //this loop checks each PCB in PCB array for if any process has arrived
-            if (PCBArray[i].Arrival_Time == cpu_time) {
+            
+            // checking what's arrived
+            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) { // if PCB has arrived and is not yet assigned
+
+                // look for a partition to assign it to            
+                for (int j = 5; j >= 0; j--){
+                    // if the current partition is available
+                    if (partitionArray[j].occupyingPID == -1){
+                        // if the size of the current partition is appropriate
+                        if (partitionArray[j].size >= PCBArray[i].Mem_Size){
+                            // set partition and pcb information to match each other
+                            PCBArray[i].partitionInUse = partitionArray[j].number;
+                            partitionArray[j].occupyingPID = PCBArray[i].PID;
+                            break; // break because the search is over
+                        }
+                    }
+                }    
+
                 ready_que.add(PCBArray[cpu_time].PID);
                 PCBArray[i].state = READY;
             }
-        }
-
-        for () {
 
         }
 
