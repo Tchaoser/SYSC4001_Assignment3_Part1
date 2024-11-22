@@ -59,6 +59,16 @@ Boolean programs_done() { //checks if program is done
     return true;
 }
 
+Boolean programRunning(){
+    for (int i = 0; PCBArray[i] != NULL; i++) {
+        if (PCBArray[i].state == RUNNING) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void FcfsScheduler() {
     ArrayList<int> ready_que; //ready que
     while (!programs_done()) {
@@ -76,7 +86,7 @@ void FcfsScheduler() {
                             // set partition and pcb information to match each other
                             PCBArray[i].partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
-                            ready_que.add(PCBArray[i].PID);
+                            ready_que.add(i);
                             PCBArray[i].state = READY;
                             break; // break because the search is over
                         }
@@ -84,10 +94,22 @@ void FcfsScheduler() {
                 }    
             }
 
+
             // maybe
         }
 
-        // for loop
+        // check if something is running
+        if (programRunning){
+            // a program is currently running
+
+        }
+        else{
+            // a program needs to be assigned
+            foreach(int pcbIndex in ready_que)
+            {
+                // PCBArray[pcbIndex]
+            }
+        }
 
         cpu_time++;
     }
