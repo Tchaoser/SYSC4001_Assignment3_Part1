@@ -50,7 +50,7 @@ void freeMemory(struct PCB* pcb) {
 }
 
 
-Boolean programs_done() {
+Boolean programs_done() { //checks if program is done
     for (int i = 0; PCBArray[i] != NULL; i++) {
         if (PCBArray[i].state != TERMINATED) {
             return false;
@@ -60,10 +60,9 @@ Boolean programs_done() {
 }
 
 void FcfsScheduler() {
-    ArrayList<int> ready_que;
-
+    ArrayList<int> ready_que; //ready que
     while (!programs_done()) {
-        for (int i = 0; PCBArray[i] != NULL; i++) {
+        for (int i = 0; PCBArray[i] != NULL; i++) { //this loop checks each PCB in PCB array for if any process has arrived
             if (PCBArray[i].Arrival_Time == cpu_time) {
                 ready_que.add(PCBArray[cpu_time].PID);
                 PCBArray[i].state = READY;
@@ -74,9 +73,8 @@ void FcfsScheduler() {
 
         }
 
+        cpu_time++;
     }
-
-
 
 }
 
