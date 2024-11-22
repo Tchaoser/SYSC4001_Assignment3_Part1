@@ -70,7 +70,7 @@ Boolean programRunning(){
 }
 
 void FcfsScheduler() {
-    ArrayList<int> ready_que; //ready que
+    ArrayList<int[2]> ready_que; //ready que
     while (!programs_done()) {
         for (int i = 0; PCBArray[i] != NULL; i++) { //this loop checks each PCB in PCB array for if any process has arrived
             
@@ -86,7 +86,7 @@ void FcfsScheduler() {
                             // set partition and pcb information to match each other
                             PCBArray[i].partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
-                            ready_que.add(i);
+                            ready_que.add({i, cpu_time});
                             PCBArray[i].state = READY;
                             break; // break because the search is over
                         }
