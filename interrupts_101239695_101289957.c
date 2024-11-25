@@ -49,7 +49,7 @@ void freeMemory(struct PCB* pcb) {
 }
 
 
-Boolean programs_done() { //checks if program is done
+bool programs_done() { //checks if program is done
     for (int i = 0; PCBArray[i] != NULL; i++) {
         if (PCBArray[i].state != TERMINATED) {
             return false;
@@ -58,7 +58,7 @@ Boolean programs_done() { //checks if program is done
     return true;
 }
 
-Boolean programRunning(){
+bool programRunning(){
     for (int i = 0; PCBArray[i] != NULL; i++) {
         if (PCBArray[i].state == RUNNING) {
             return true;
