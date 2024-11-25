@@ -31,21 +31,12 @@ void memorySetup() {
 }
 
 void allocateMemory(struct PCB* pcb) {
-    for (int i = 0; i < 6; i++ ) {
-        if (partitionArray[i].occupyingPID == -1) {
-            if (pcb->Mem_Size <= partitionArray[i].size) {
-                partitionArray[i].occupyingPID = pcb->PID;
-                pcb->partitionInUse = partitionArray[i]->number; 
-                pcb->state = READY;
-                break;
-            }
-        }
-    }
+
 }
 
 void freeMemory(struct PCB* pcb) {
    partitionArray[pcb->partitionInUse - 1].occupyingPID = -1;
-   pcb->partitionInUse = NULL;
+   pcb->partitionInUse = 0;
 }
 
 
@@ -104,7 +95,7 @@ int readyQueToActivate(ArrayList<int[2]> ready_que) {
 
 
 void FcfsScheduler() {
-    ArrayList<int[2]> ready_que; //ready que
+    // ArrayList<int[2]> ready_que; //ready que
     ///////////////////////////////////////////// WARNING! CANT ACTUALLY DO ARRAYLIST IN C, it only shows no errors because it cant fully compile yet
     unsigned int runningTimeLeft = 0;
 
@@ -187,7 +178,7 @@ void InputFileProcesser(FILE* traceFilePointer) {
     }
 }
 
-void recordStateTransition(int transiton, Struct PCB* pcb, int oldState, int newState) {
+void recordStateTransition(int transiton, struct PCB* pcb, int oldState, int newState) {
 
 }
 
