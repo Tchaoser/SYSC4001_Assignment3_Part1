@@ -10,7 +10,6 @@ struct PCB PCBArray[100];
 bool modeBit = 0;
 int totalSystemRunTime = 0;
 unsigned int cpu_time = 0;
-char initName[20];
 // initializing vector table
 unsigned int vectorTable[] = {0X01E3, 0X029C, 0X0695, 0X042B, 0X0292, 0X048B, 0X0639, 0X00BD, 0X06EF, 0X036C, 0X07B0, 0X01F8, 0X03B9, 0X06C7, 0X0165, 0X0584, 0X02DF, 0X05B3, 0X060A, 0X0765, 0X07B7, 0X0523, 0X03B7, 0X028C, 0X05E8, 0X05D3};
 
@@ -106,6 +105,9 @@ int readyQueToActivate(ArrayList<int[2]> ready_que) {
 
 void FcfsScheduler() {
     ArrayList<int[2]> ready_que; //ready que
+    ///////////////////////////////////////////// WARNING! CANT ACTUALLY DO ARRAYLIST IN C, it only shows no errors because it cant fully compile yet
+    unsigned int runningTimeLeft = 0;
+
     while (!programs_done()) {
         
         // checking what's arrived (NEW)
@@ -138,10 +140,7 @@ void FcfsScheduler() {
         }
         else{
             // a program needs to be assigned (READY)
-            foreach(int pcbIndex in ready_que)
-            {
-                // PCBArray[pcbIndex]
-            }
+            int pcbToAssign = readyQueToActivate(ready_que);
         }
 
         // check if something is waiting (WAITING)
