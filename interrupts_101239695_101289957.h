@@ -28,9 +28,9 @@ struct PCB {
 };
 
 struct readyQueNode{
-    struct PCB* pcb
-    readyQueNode* next;
-}
+    struct PCB* pcb;
+    struct readyQueNode* next;
+};
 
 
 void routineScheduler();
@@ -41,7 +41,7 @@ void PriorityScheduler();
 void RoundRobinScheduler();
 void allocateMemory(struct PCB* pcb);
 void freeMemory(struct PCB* pcb);
-void recordStateTransition(int transition, Struct PCB* pcb, int oldState, int newState);
+void recordStateTransition(int transition, struct PCB* pcb, int oldState, int newState);
 void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree);
 
 #endif
