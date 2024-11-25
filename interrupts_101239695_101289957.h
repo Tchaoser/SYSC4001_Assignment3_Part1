@@ -21,11 +21,16 @@ struct PCB {
     unsigned int IO_Freq;
     unsigned int IO_Duration;
     unsigned int Remaining_CPU;
-    unsigned int partitionInUse = NULL;
+    unsigned int partitionInUse;
     enum State {            // Current state of the process
         NEW, READY, RUNNING, WAITING, TERMINATED
     } state;
 };
+
+struct readyQueNode{
+    struct PCB* pcb
+    readyQueNode* next;
+}
 
 
 void routineScheduler();
