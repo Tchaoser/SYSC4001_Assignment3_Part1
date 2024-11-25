@@ -70,26 +70,37 @@ Boolean programRunning(){
 }
 
 int readyQueToActivate(ArrayList<int[2]> ready_que) {
-    int shortest_index = ready_que.get(0).get(0);
-    int shortest_time = ready_que.get(0).get(1);
+    // initialize the earliest index in question and its arrival time from the first index in the ready queue
+    int earliest_index = ready_que.get(0).get(0);
+    int earliest_time_arrival = ready_que.get(0).get(1);
 
+    // start cycling the ready queue from the second index to the last index
+    // to get the earliest arriving program
     for(int i = 1; i< this.ready_que.size(); i++) {
-        if (ready_que.get(i).get(1) < shortest_time) {
-            shortest_index = this.ready_que.get(i).get(0);
-            shortest_time = this.ready_que.get(i).get(1);
+        // if the current program arrives at an earlier time than our previous earliest time
+        if (ready_que.get(i).get(1) < earliest_time_arrival) {
+            // set earliest index in question and its arrival time from this index in the ready queue
+            earliest_index = this.ready_que.get(i).get(0);
+            earliest_time_arrival = this.ready_que.get(i).get(1);
         }
     }
 
+    // start cycling the ready queue from the first index to the last index
+    // to get the program with the lowest pid of those that qualify as the earliest arriving program
+    // ex: multiple programs arrive at 0 ms, we need to choose the one with the lowest pid
     for (int i = 0; i < this.ready_que.size(); i++){
-        if (ready_que.get(i).get(1) = shortest_time){
-            if (PCBArray[ready_que.get(i).get(0)].PID < PCBArray[shortest_index].PID){
-                shortest_index = ready_que.get(i).get(0);
+        // if the current program arrives at the same time as our earliest arrival time
+        if (ready_que.get(i).get(1) == earliest_time_arrival){
+            // if the current program's pid is lower than the program recorded as the earliest to arrive
+            if (PCBArray[ready_que.get(i).get(0)].PID < PCBArray[earliest_index].PID){
+                // change the earliest arriving program to this one
+                earliest_index = ready_que.get(i).get(0);
             }
         }
     }
 
-    // we know have the index of the pcb with the earliest arrival time and the lowest pid
-    return ready_que.get(shortest_index).get(0);
+    // we now have the index of the pcb with the earliest arrival time and the lowest pid
+    return ready_que.get(earliest_index).get(0);
 }
 
 
