@@ -5,6 +5,7 @@
 // instantiating arrays
 struct partition partitionArray[6];
 struct PCB PCBArray[100];
+struct readyQueue* headReadyQueue = NULL;
 
 // =-=     
 bool modeBit = 0;
