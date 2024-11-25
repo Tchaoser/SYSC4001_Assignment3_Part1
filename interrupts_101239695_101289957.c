@@ -107,44 +107,44 @@ int readyQueToActivate(ArrayList<int[2]> ready_que) {
 void FcfsScheduler() {
     ArrayList<int[2]> ready_que; //ready que
     while (!programs_done()) {
+        
+        // checking what's arrived (NEW)
         for (int i = 0; PCBArray[i] != NULL; i++) { //this loop checks each PCB in PCB array for if any process has arrived
-            
-            // checking what's arrived
-            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) { // if PCB has arrived and is not yet assigned
-
-                // look for a partition to assign it to            
+            // if the current program has arrived and is new
+            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) {
+                // look for a partition to assign it to from lowest to highest available memory       
                 for (int j = 5; j >= 0; j--){
                     // if the current partition is available
                     if (partitionArray[j].occupyingPID == -1){
-                        // if the size of the current partition is appropriate
+                        // if the size available in the current partition is enough to store the program
                         if (partitionArray[j].size >= PCBArray[i].Mem_Size){
-                            // set partition and pcb information to match each other
+                            // set partition and pcb information to match each other (we store this program in this partition)
                             PCBArray[i].partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
-                            ready_que.add({i, cpu_time});
+                            // this program should go from new to ready now
                             PCBArray[i].state = READY;
-                            break; // break because the search is over
+                            ready_que.add({i, cpu_time});
+                            break; // break because the search for an available partition is over
                         }
                     }
                 }    
             }
-
-
-            // maybe
         }
 
-        // check if something is running
+        // check if something is running (RUNNING)
         if (programRunning){
             // a program is currently running
 
         }
         else{
-            // a program needs to be assigned
+            // a program needs to be assigned (READY)
             foreach(int pcbIndex in ready_que)
             {
                 // PCBArray[pcbIndex]
             }
         }
+
+        // check if something is waiting (WAITING)
 
         cpu_time++;
     }
