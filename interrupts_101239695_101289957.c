@@ -28,6 +28,10 @@ void memorySetup() {
     partitionArray[3].number = 4; partitionArray[3].size = 10; partitionArray[3].occupyingPID = -1;
     partitionArray[4].number = 5; partitionArray[4].size = 8; partitionArray[4].occupyingPID = -1;
     partitionArray[5].number = 6; partitionArray[5].size = 2; partitionArray[5].occupyingPID = -1;
+
+    for (int i = 0; i < 100; i++){
+        PCBArray[i].PID = 0;
+    }
 }
 
 void allocateMemory(struct PCB* pcb) {
@@ -41,7 +45,7 @@ void freeMemory(struct PCB* pcb) {
 
 
 bool programs_done() { //checks if program is done
-    for (int i = 0; PCBArray[i] != NULL; i++) {
+    for (int i = 0; PCBArray[i].PID == 0; i++) {
         if (PCBArray[i].state != TERMINATED) {
             return false;
         }
@@ -50,7 +54,7 @@ bool programs_done() { //checks if program is done
 }
 
 bool programRunning(){
-    for (int i = 0; PCBArray[i] != NULL; i++) {
+    for (int i = 0; PCBArray[i].PID == 0; i++) {
         if (PCBArray[i].state == RUNNING) {
             return true;
         }
@@ -59,7 +63,8 @@ bool programRunning(){
     return false;
 }
 
-int readyQueToActivate(ArrayList<int[2]> ready_que) {
+int readyQueToActivate() {
+    /*
     // initialize the earliest index in question and its arrival time from the first index in the ready queue
     int earliest_index = ready_que.get(0).get(0);
     int earliest_time_arrival = ready_que.get(0).get(1);
@@ -91,6 +96,7 @@ int readyQueToActivate(ArrayList<int[2]> ready_que) {
 
     // we now have the index of the pcb with the earliest arrival time and the lowest pid
     return ready_que.get(earliest_index).get(0);
+    */
 }
 
 
@@ -102,7 +108,7 @@ void FcfsScheduler() {
     while (!programs_done()) {
         
         // checking what's arrived (NEW)
-        for (int i = 0; PCBArray[i] != NULL; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+        for (int i = 0; PCBArray[i].PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
             // if the current program has arrived and is new
             if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) {
                 // look for a partition to assign it to from lowest to highest available memory       
@@ -116,7 +122,7 @@ void FcfsScheduler() {
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
                             // this program should go from new to ready now
                             PCBArray[i].state = READY;
-                            ready_que.add({i, cpu_time});
+                            // ready_que.add({i, cpu_time});                                                   WARNING! CANT ACTUALLY DO ARRAYLIST IN C
                             break; // break because the search for an available partition is over
                         }
                     }
@@ -131,7 +137,7 @@ void FcfsScheduler() {
         }
         else{
             // a program needs to be assigned (READY)
-            int pcbToAssign = readyQueToActivate(ready_que);
+            // int pcbToAssign = readyQueToActivate(ready_que);            WARNING! CANT ACTUALLY DO ARRAYLIST IN C
         }
 
         // check if something is waiting (WAITING)
@@ -163,15 +169,15 @@ void InputFileProcesser(FILE* traceFilePointer) {
     while(fgets(buffer, BUFFER_SIZE, traceFilePointer)) {
         char *token = strtok(buffer, ","); // "0"
         PCBArray[counter].PID = atoi(token);
-        char *token = strtok(buffer, ","); // "1"
+        token = strtok(buffer, ","); // "1"
         PCBArray[counter].Mem_Size = atoi(token);
-        char *token = strtok(buffer, ","); // "0"
+        token = strtok(buffer, ","); // "0"
         PCBArray[counter].Arrival_Time = atoi(token);
-        char *token = strtok(buffer, ","); // "50"
+        token = strtok(buffer, ","); // "50"
         PCBArray[counter].CPU_Time = atoi(token);
-        char *token = strtok(buffer, ","); // "10"
+        token = strtok(buffer, ","); // "10"
         PCBArray[counter].IO_Freq = atoi(token);
-        char *token = strtok(buffer, ","); // "1"
+        token = strtok(buffer, ","); // "1"
         PCBArray[counter].IO_Duration = atoi(token);
 
         counter++;
