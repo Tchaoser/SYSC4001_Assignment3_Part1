@@ -5,7 +5,7 @@
 // instantiating arrays
 struct partition partitionArray[6];
 struct PCB PCBArray[100];
-struct readyQueue* headReadyQueue = NULL;
+struct readyQueueNode* headReadyQueueNode = NULL;
 
 // =-=     
 bool modeBit = 0;
@@ -21,6 +21,38 @@ FILE* traceFilePointer; // create a pointer to the trace file
 FILE* outputFilePointer; // create a pointer to the output file
 char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each line from the trace file
 
+// readyQueue operations
+int readyQueueLength(readyQueueNode* headReadyQueueNode){
+    int lengthCounter = 0;
+    readyQueueNode* current_node = headReadyQueueNode;
+    for (; current_node != NULL; current_node = current_node->next){
+        lengthCounter++
+    }
+
+    return lengthCounter++;
+}
+
+void readyQueueAddPCB(readyQueueNode* headReadyQueueNode, PCB* pcbToAdd){
+    struct readyQueueNode* nodeToAdd = malloc(sizeof(struct readyQueueNode));
+    int queueLength = readyQueueLength(headReadyQueueNode);
+    nodeToAdd->index = queueLength;
+    nodeToAdd->pcb = pcbToAdd;
+    nodeToAdd->next = NULL;
+
+    if (queueLength == 0){
+        headReadyQueueNode = nodeToAdd;
+        return;
+    }
+    else{
+        readyQueueNode* current_node = headReadyQueueNode;
+        for (; current_node != NULL; current_node = current_node->next){
+            if (current_node->next == NULL){
+                current_node->next = pcbToAdd;
+                return;
+            }
+        }
+    }
+}
 
 void memorySetup() {
     partitionArray[0].number = 1; partitionArray[0].size = 40; partitionArray[0].occupyingPID = -1;
@@ -104,7 +136,7 @@ int readyQueToActivate() {
 void FcfsScheduler() {
     // ArrayList<int[2]> ready_que; //ready que
     ///////////////////////////////////////////// WARNING! CANT ACTUALLY DO ARRAYLIST IN C, it only shows no errors because it cant fully compile yet
-    unsigned int runningTimeLeft = 0;
+    unsigned int runTimeLeft = 0;
 
     while (!programs_done()) {
         

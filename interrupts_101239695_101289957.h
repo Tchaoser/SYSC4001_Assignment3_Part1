@@ -27,7 +27,8 @@ struct PCB {
     } state;
 };
 
-struct readyQueNode{
+struct readyQueueNode{
+    unsigned int index;
     struct PCB* pcb;
     struct readyQueNode* next;
 };
