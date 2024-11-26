@@ -5,7 +5,6 @@
 // instantiating arrays
 struct partition partitionArray[6];
 struct PCB PCBArray[100];
-struct readyQueueNode* headReadyQueueNode = NULL;
 
 // =-=     
 bool modeBit = 0;
@@ -32,7 +31,7 @@ int readyQueueLength(readyQueueNode* headReadyQueueNode){
     return lengthCounter++;
 }
 
-void readyQueueAddPCB(readyQueueNode* headReadyQueueNode, PCB* pcbToAdd){
+void readyQueueAddPCB(struct readyQueueNode* headReadyQueueNode, struct PCB* pcbToAdd){
     struct readyQueueNode* nodeToAdd = malloc(sizeof(struct readyQueueNode));
     int queueLength = readyQueueLength(headReadyQueueNode);
     nodeToAdd->index = queueLength;
@@ -52,6 +51,50 @@ void readyQueueAddPCB(readyQueueNode* headReadyQueueNode, PCB* pcbToAdd){
             }
         }
     }
+}
+
+struct readyQueueNode* getNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToGetAt)(
+    readyQueueNode* current_node = headReadyQueueNode;
+    int currentIndex = 0;
+    for (; current_node != NULL; current_node = current_node->next){
+        if (currentIndex == indexToGetAt){
+            return current_node;
+        }
+
+        currentIndex++;
+    }
+
+    // if we never returned a node, a node at that index doesn't exist
+    return NULL;
+)
+
+// incomplete implementation
+// WARNING! DONT RUN
+int removeNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToRemoveAt){
+    readyQueueNode* current_node = headReadyQueueNode;
+    readyQueueNode* previous_node = NULL;
+    int currentIndex = 0;
+
+    for (; current_node != NULL; current_node = current_node->next){
+        if (currentIndex == indexToRemoveAt){
+            if (currentIndex == 0 && current_node->next == NULL){
+                headReadyQueueNode = NULL;
+                return -1;
+            }
+            
+            previous_node->next = current_node->next;
+            int indexInNodeToDelete = current->index;
+            free(current_node);
+            current_node = NULL;
+            return indexOfNodeToDelete;
+        }
+
+        previous_node = current_node;
+        currentIndex++;
+    }
+
+    // if we never returned the function, a node at that index doesn't exist
+    return;
 }
 
 void memorySetup() {
@@ -137,6 +180,7 @@ void FcfsScheduler() {
     // ArrayList<int[2]> ready_que; //ready que
     ///////////////////////////////////////////// WARNING! CANT ACTUALLY DO ARRAYLIST IN C, it only shows no errors because it cant fully compile yet
     unsigned int runTimeLeft = 0;
+    struct readyQueueNode* headReadyQueueNode = NULL;
 
     while (!programs_done()) {
         
