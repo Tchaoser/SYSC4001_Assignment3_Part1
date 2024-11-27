@@ -146,11 +146,53 @@ bool programRunning(){
     return false;
 }
 
-int readyQueToActivate() {
+struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
 
-    // initialize the earliest index in question and its arrival time from the first index in the ready queue
-    int earliest_index = ready_que.get(0).get(0);
-    int earliest_time_arrival = ready_que.get(0).get(1);
+    // initialize the earliest 
+    int readyQueueLength = readyQueueLength(headReadyQueueNode);
+
+    if (readyQueueLength == 0){
+        return NULL;
+    }
+    else if (readyQueueLength == 1){
+        struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
+        free(headReadyQueueNode); // free the head ready queue node
+        headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
+        return pcbToReturn; // return the pcb we took before freeing the node
+    }
+    else{
+        // readyQueueLength >= 2
+        // need to choose the best to select
+
+        struct readyQueueNode* earliestArrivingNode = headReadyQueueNode;
+        readyQueueNode* current_node = headReadyQueueNode->next;
+
+        // find the earliest arriving node
+        for (; current_node != NULL; current_node = current_node->next){
+            // if the current node arrived earlier than
+            if (current_node->readySinceTime < earliestArrivingNode){
+                earliestArrivingNode = current_node;
+            }
+        }
+
+        current_node = headReadyQueueNode;
+        // find the node with the highest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
+        for (; current_node != NULL; current_node = current_node->next){
+            // if the current node arrived at the same time as the earliest arriving node
+            if (current_node->readySinceTime = earliestArrivingNode->readySinceTime){
+                // if th ecurrent node has a lower pid
+                if (current_node->pcb->PID < earliestArrivingNode->pcb->PID){
+                    earliestArrivingNode = current_node;
+                }
+            }
+        }
+
+        // by this time we've selected the earliest arriving node, and if there are multiple, we chose the one with the lowest pid
+        struct PCB* pcbSelected = earliestArrivingNode->pcb;
+        int indexOfNodeToDelete = earliestArrivingNode->index;
+        removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
+        return pcbSelected; // return the pcb of the program that is selected to start running
+    }
 
     // start cycling the ready queue from the second index to the last index
     // to get the earliest arriving program
