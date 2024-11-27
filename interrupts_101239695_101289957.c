@@ -31,11 +31,13 @@ int readyQueueLength(readyQueueNode* headReadyQueueNode){
     return lengthCounter++;
 }
 
-void readyQueueAddPCB(struct readyQueueNode* headReadyQueueNode, struct PCB* pcbToAdd){
+// Add a node to the end of the ready queue with its relevant information
+void readyQueueAddNode(struct readyQueueNode* headReadyQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
     struct readyQueueNode* nodeToAdd = malloc(sizeof(struct readyQueueNode));
     int queueLength = readyQueueLength(headReadyQueueNode);
     nodeToAdd->index = queueLength;
     nodeToAdd->pcb = pcbToAdd;
+    nodeToAdd->readySinceTime = timeOfArrival;
     nodeToAdd->next = NULL;
 
     if (queueLength == 0){
@@ -44,6 +46,7 @@ void readyQueueAddPCB(struct readyQueueNode* headReadyQueueNode, struct PCB* pcb
     }
     else{
         readyQueueNode* current_node = headReadyQueueNode;
+        // Find the last node and set its next node to the nodeToAdd;
         for (; current_node != NULL; current_node = current_node->next){
             if (current_node->next == NULL){
                 current_node->next = pcbToAdd;
@@ -144,7 +147,7 @@ bool programRunning(){
 }
 
 int readyQueToActivate() {
-    /*
+
     // initialize the earliest index in question and its arrival time from the first index in the ready queue
     int earliest_index = ready_que.get(0).get(0);
     int earliest_time_arrival = ready_que.get(0).get(1);
@@ -176,7 +179,6 @@ int readyQueToActivate() {
 
     // we now have the index of the pcb with the earliest arrival time and the lowest pid
     return ready_que.get(earliest_index).get(0);
-    */
 }
 
 
