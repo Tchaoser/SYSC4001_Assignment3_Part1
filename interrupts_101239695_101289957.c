@@ -53,6 +53,7 @@ void readyQueueAddPCB(struct readyQueueNode* headReadyQueueNode, struct PCB* pcb
     }
 }
 
+// Finds the node of a linked list at a given index, and returns the node (without modifying it)
 struct readyQueueNode* getNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToGetAt)(
     readyQueueNode* current_node = headReadyQueueNode;
     int currentIndex = 0;
@@ -68,8 +69,7 @@ struct readyQueueNode* getNodeAtIndex(struct readyQueueNode* headReadyQueueNode,
     return NULL;
 )
 
-// incomplete implementation
-// WARNING! DONT RUN
+// Removes the node of a linked list at a given index, and returns the index of the node 
 int removeNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToRemoveAt){
     readyQueueNode* current_node = headReadyQueueNode;
     readyQueueNode* previous_node = NULL;
@@ -77,24 +77,28 @@ int removeNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToRemo
 
     for (; current_node != NULL; current_node = current_node->next){
         if (currentIndex == indexToRemoveAt){
+            // if we're removing the first node, and its next node is null
             if (currentIndex == 0 && current_node->next == NULL){
+                // just set the head of the linked list to NULL
                 headReadyQueueNode = NULL;
-                return -1;
+                return 0; // return 0 (signifies node at index 0 was deleted)
             }
             
+            // if we're not removing the first node, we want to have the previous one link to
             previous_node->next = current_node->next;
-            int indexInNodeToDelete = current->index;
+            int indexOfNodeDeleted = current->index;
             free(current_node);
             current_node = NULL;
-            return indexOfNodeToDelete;
+            return indexOfNodeDeleted; // return indexOfNodeDeleted (signifies node at that index was deleted)
         }
 
+        // if we aren't at the node yet, set the previous node to our current node before advancing it
         previous_node = current_node;
         currentIndex++;
     }
 
     // if we never returned the function, a node at that index doesn't exist
-    return;
+    return -1;
 }
 
 void memorySetup() {
