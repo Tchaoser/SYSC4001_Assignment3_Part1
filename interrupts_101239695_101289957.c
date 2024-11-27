@@ -1,7 +1,6 @@
 #include "interrupts_101239695_101289957.h"
 #define BUFFER_SIZE 32
 
-
 // instantiating arrays
 struct partition partitionArray[6];
 struct PCB PCBArray[100];
@@ -126,7 +125,6 @@ void freeMemory(struct PCB* pcb) {
    pcb->partitionInUse = 0;
 }
 
-
 bool programs_done() { //checks if program is done
     for (int i = 0; PCBArray[i].PID == 0; i++) {
         if (PCBArray[i].state != TERMINATED) {
@@ -147,7 +145,6 @@ bool programRunning(){
 }
 
 struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
-
     // initialize the earliest 
     int readyQueueLength = readyQueueLength(headReadyQueueNode);
 
@@ -194,39 +191,11 @@ struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
         return pcbSelected; // return the pcb of the program that is selected to start running
     }
 
-    // start cycling the ready queue from the second index to the last index
-    // to get the earliest arriving program
-    for(int i = 1; i< this.ready_que.size(); i++) {
-        // if the current program arrives at an earlier time than our previous earliest time
-        if (ready_que.get(i).get(1) < earliest_time_arrival) {
-            // set earliest index in question and its arrival time from this index in the ready queue
-            earliest_index = this.ready_que.get(i).get(0);
-            earliest_time_arrival = this.ready_que.get(i).get(1);
-        }
-    }
-
-    // start cycling the ready queue from the first index to the last index
-    // to get the program with the lowest pid of those that qualify as the earliest arriving program
-    // ex: multiple programs arrive at 0 ms, we need to choose the one with the lowest pid
-    for (int i = 0; i < this.ready_que.size(); i++){
-        // if the current program arrives at the same time as our earliest arrival time
-        if (ready_que.get(i).get(1) == earliest_time_arrival){
-            // if the current program's pid is lower than the program recorded as the earliest to arrive
-            if (PCBArray[ready_que.get(i).get(0)].PID < PCBArray[earliest_index].PID){
-                // change the earliest arriving program to this one
-                earliest_index = ready_que.get(i).get(0);
-            }
-        }
-    }
-
-    // we now have the index of the pcb with the earliest arrival time and the lowest pid
-    return ready_que.get(earliest_index).get(0);
+    // the function should never get to this point, if so, return NULL
+    return NULL;
 }
 
-
 void FcfsScheduler() {
-    // ArrayList<int[2]> ready_que; //ready que
-    ///////////////////////////////////////////// WARNING! CANT ACTUALLY DO ARRAYLIST IN C, it only shows no errors because it cant fully compile yet
     unsigned int runTimeLeft = 0;
     struct readyQueueNode* headReadyQueueNode = NULL;
 
@@ -286,7 +255,6 @@ void routineScheduler(){
     // scheduler called
 }
 
-
 void InputFileProcesser(FILE* traceFilePointer) {
     // 0, 1, 0, 50, 10, 1 instruction parsing
     unsigned int counter = 0;
@@ -316,8 +284,6 @@ void recordStateTransition(int transiton, struct PCB* pcb, int oldState, int new
 void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree) {
 
 }
-
-
 
 int main(int argc, char* argv[])
 {
