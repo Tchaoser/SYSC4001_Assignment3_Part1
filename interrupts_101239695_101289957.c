@@ -310,10 +310,40 @@ void InputFileProcesser(FILE* traceFilePointer) {
 void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, int oldState, int newState) {
     // execution_file line print
 
+    // string var for old and new state name to print
+    char oldStateName[20];
+    char newStateName[20];
+
+    // Translate the state number to its state name 
+    // reason we do it this way is because its actually impossible to access the name of our enum state at run time
+    switch (oldState){
+        case 0: strcpy(oldStateName, "NEW"); break;
+        case 1: strcpy(oldStateName, "READY"); break;
+        case 2: strcpy(oldStateName, "RUNNING"); break;
+        case 3: strcpy(oldStateName, "WAITING"); break;
+        case 4: strcpy(oldStateName, "TERMINATED"); break;
+    }
+    switch (newState){
+        case 0: strcpy(newStateName, "NEW"); break;
+        case 1: strcpy(newStateName, "READY"); break;
+        case 2: strcpy(newStateName, "RUNNING"); break;
+        case 3: strcpy(newStateName, "WAITING"); break;
+        case 4: strcpy(newStateName, "TERMINATED"); break;
+    }
+
+    fprintf(execution_file, "| %d | %d | %s | %s | \n", timeOfTransition, pid, oldStateName, newStateName);
 }
 
 void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent, int memoryUsed) {
     // memory_status_file line print
+
+    // capture the state of the partitions in a string
+
+    // calculate total free memory
+
+    // calculate usable free memory
+
+    fprintf(memory_status_file, "");
 
 }
 
