@@ -120,9 +120,10 @@ void allocateMemory(struct PCB* pcb) {
 
 }
 
-void freeMemory(struct PCB* pcb) {
+void terminateProgram(struct PCB* pcb) {
    partitionArray[pcb->partitionInUse - 1].occupyingPID = -1;
    pcb->partitionInUse = 0;
+   pcb->state = TERMINATED;
 }
 
 bool programs_done() { //checks if program is done
@@ -226,19 +227,21 @@ void FcfsScheduler() {
             }
         }
 
-        
         // check if something is running (RUNNING)
         if (runningPCB != NULL){
             // a program is currently running
             if (runTimeLeft > 0){
                 if (runningPCB->Remaining_CPU == 0){
                     // terminate the program
-
+                    terminatePCB(runningPCB);
+                    runningPCB = NULL;
                 }
             } 
             else if (runTimeLeft == 0){
                 // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
-
+                runningPCB->state = WAITING;
+                customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
+                runningPCB = NULL;
             }
         }
         else{
@@ -247,9 +250,24 @@ void FcfsScheduler() {
             runTimeLeft = runningPCB->IO_Freq;
         }
 
-        // check if something is waiting (WAITING)
+        // process all waiting programs (WAITING)
+        struct customQueueNode* current_node = headWaitingQueueNode;
+        struct customQueueNode* next_node = NULL;
+        for (; current_node != NULL; current_node = next_node){
+            int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
+            next_node = current_node->next;
 
-        
+            if (timeSpentWaiting == current_node->IO_Duration){
+                // the current program is done waiting
+                // assign it back to ready queue
+                struct PCB* pcbToAssign = current_node->pcb;
+                pcbToAssign->state = READY;
+                customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
+                // remove it from waiting queue
+                int indexOfNodeToDelete = current_node->index;
+                removeNodeAtIndex(headWaitingQueueNode, indexOfNodetoDelete);
+            }
+        }
 
         // after checking all PCBs at this time, update time
         cpu_time++;
