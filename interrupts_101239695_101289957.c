@@ -1,5 +1,6 @@
 #include "interrupts_101239695_101289957.h"
 #define BUFFER_SIZE 32
+#define PARTITION_ARRAY_LENGTH = 6;
 
 // instantiating arrays
 struct partition partitionArray[6];
@@ -337,13 +338,24 @@ void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, 
 void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent, int memoryUsed) {
     // memory_status_file line print
 
-    // capture the state of the partitions in a string
-
     // calculate total free memory
+    int totalFreeMemory = 0;
 
     // calculate usable free memory
+    int usableFreeMemory = 0;
 
-    fprintf(memory_status_file, "");
+    fprintf(memory_status_file, "| %d | %d |", timeOfEvent, memoryUsed);
+    
+    for (int i = 0; i < PARTITION_ARRAY_LENGTH; i++){
+        if (i == PARTITION_ARRAY_LENGTH - 1){
+            fprintf(memory_status_file, "%d |", partitionArray[i]->occupyingPID);
+        }
+        else{
+            fprintf(memory_status_file, "%d, ", partitionArray[i]->occupyingPID);
+        }
+    }
+
+    fprintf(memory_status_file, " %d | %d |\n", totalFreeMemory, usableFreeMemory);
 
 }
 
