@@ -34,15 +34,20 @@ struct customQueueNode {
     struct customQueueNode* next;
 }
 
-void routineScheduler();
+int customQueueLength(customQueueNode* headCustomQueueNode);
+void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival);
+struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt);
+int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt);
 void memorySetup();
-void InputFileProcesser(FILE* traceFilePointer);
+void terminateProgram(struct PCB* pcb);
+bool programs_done();
+bool programRunning();
+struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 void FcfsScheduler();
 void PriorityScheduler();
 void RoundRobinScheduler();
-void allocateMemory(struct PCB* pcb);
-void freeMemory(struct PCB* pcb);
-void recordStateTransition(int transition, struct PCB* pcb, int oldState, int newState);
-void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree);
+void InputFileProcesser(FILE* traceFilePointer);
+void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, int oldState, int newState);
+void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent);
 
 #endif

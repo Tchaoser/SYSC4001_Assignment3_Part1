@@ -293,14 +293,8 @@ void PriorityScheduler() {
 
 }
 
-
 void RoundRobinScheduler() {
 
-}
-
-
-void routineScheduler(){
-    // scheduler called
 }
 
 void InputFileProcesser(FILE* traceFilePointer) {
