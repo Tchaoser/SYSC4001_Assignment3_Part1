@@ -255,7 +255,7 @@ void FcfsScheduler() {
         struct customQueueNode* next_node = NULL;
         for (; current_node != NULL; current_node = next_node){
             int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
-            next_node = current_node->next;
+            next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
             if (timeSpentWaiting == current_node->IO_Duration){
                 // the current program is done waiting
