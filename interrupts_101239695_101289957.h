@@ -41,7 +41,6 @@ int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRe
 void memorySetup();
 void terminateProgram(struct PCB* pcb);
 bool programs_done();
-bool programRunning();
 struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 void FcfsScheduler();
 void PriorityScheduler();

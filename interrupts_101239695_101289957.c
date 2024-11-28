@@ -130,16 +130,6 @@ bool programs_done() { //checks if program is done
     return true;
 }
 
-bool programRunning(){
-    for (int i = 0; PCBArray[i].PID == 0; i++) {
-        if (PCBArray[i].state == RUNNING) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     // initialize the earliest 
     int readyQueueLength = customQueueLength(headReadyQueueNode);
