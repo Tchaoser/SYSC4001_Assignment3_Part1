@@ -116,10 +116,6 @@ void memorySetup() {
     }
 }
 
-void allocateMemory(struct PCB* pcb) {
-
-}
-
 void terminateProgram(struct PCB* pcb) {
    partitionArray[pcb->partitionInUse - 1].occupyingPID = -1;
    pcb->partitionInUse = 0;
@@ -311,11 +307,13 @@ void InputFileProcesser(FILE* traceFilePointer) {
     }
 }
 
-void recordStateTransition(int transiton, struct PCB* pcb, int oldState, int newState) {
+void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, int oldState, int newState) {
+    // execution_file line print
 
 }
 
-void recordMemoryStatus(int time, int memoryUsed, char* partitionState, int totalFree, int usableFree) {
+void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent, int memoryUsed) {
+    // memory_status_file line print
 
 }
 
