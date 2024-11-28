@@ -13,11 +13,9 @@ unsigned int cpu_time = 0;
 // initializing vector table
 unsigned int vectorTable[] = {0X01E3, 0X029C, 0X0695, 0X042B, 0X0292, 0X048B, 0X0639, 0X00BD, 0X06EF, 0X036C, 0X07B0, 0X01F8, 0X03B9, 0X06C7, 0X0165, 0X0584, 0X02DF, 0X05B3, 0X060A, 0X0765, 0X07B7, 0X0523, 0X03B7, 0X028C, 0X05E8, 0X05D3};
 
-FILE* currentFilePointer;
-FILE* externalFilePointer; // create a pointer to the external files file
-FILE* outputSecondFilePointer; // create a pointer to the system_status file
 FILE* traceFilePointer; // create a pointer to the trace file
 FILE* outputFilePointer; // create a pointer to the output file
+FILE* outputSecondFilePointer; // create a pointer to the memory_status file
 char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each line from the trace file
 
 // customQueue operations
@@ -215,8 +213,11 @@ void FcfsScheduler() {
                             PCBArray[i].partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
                             // this program should go from new to ready now
-                            PCBArray[i].state = READY;
+                            PCBArray[i].state = READY; // set to READY (1)
                             customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
+                            // Record execution + memory_status output
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->pid, 0, 1); // NEW -> READY
+                            recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
                         }
                     }
@@ -229,6 +230,10 @@ void FcfsScheduler() {
             // a program is currently running
             if (runTimeLeft > 0){
                 if (runningPCB->Remaining_CPU == 0){
+                    // Record execution + memory_status output
+                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 4); // RUNNING -> TERMINATED
+                    recordMemoryStatus(outputSecondFilePointer, cpu_time);
+
                     // terminate the program
                     terminatePCB(runningPCB);
                     runningPCB = NULL;
@@ -238,6 +243,11 @@ void FcfsScheduler() {
                 // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
                 runningPCB->state = WAITING;
                 customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
+
+                // Record execution output
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 3); // RUNNING -> WAITING
+
+                // reset runningPCB to NULL
                 runningPCB = NULL;
             }
         }
@@ -245,6 +255,9 @@ void FcfsScheduler() {
             // a program needs to be assigned (READY)
             runningPCB = selectNextReadyProgram(headReadyQueueNode);
             runTimeLeft = runningPCB->IO_Freq;
+
+            // Record execution output
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 1, 2); // READY -> RUNNING
         }
 
         // process all waiting programs (WAITING)
@@ -260,6 +273,10 @@ void FcfsScheduler() {
                 struct PCB* pcbToAssign = current_node->pcb;
                 pcbToAssign->state = READY;
                 customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
+
+                // Record execution output
+                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->pid, 3, 1); // WAITING -> READY
+
                 // remove it from waiting queue
                 int indexOfNodeToDelete = current_node->index;
                 removeNodeAtIndex(headWaitingQueueNode, indexOfNodetoDelete);
@@ -335,8 +352,11 @@ void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, 
     fprintf(execution_file, "| %d | %d | %s | %s | \n", timeOfTransition, pid, oldStateName, newStateName);
 }
 
-void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent, int memoryUsed) {
+void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
     // memory_status_file line print
+
+    // calculate memory used
+    int memoryUsed = 0;
 
     // calculate total free memory
     int totalFreeMemory = 0;
