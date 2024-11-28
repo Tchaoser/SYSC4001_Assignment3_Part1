@@ -371,11 +371,15 @@ int main(int argc, char* argv[])
     // assign MyTraceFile1.txt to traceFilePointer in read mode
     traceFilePointer = fopen(argv[1], "r"); // argv[1]
 
+    // take the chosen algorithm from the second argument
+    char[10] chosenAlgorithm;
+    strcpy(chosenAlgorithm, argv[2]);
+
     // assign ProgramOutput1.txt to outputFilePointer in write mode
-    outputFilePointer = fopen(argv[2], "w"); // argv[2]
+    // outputFilePointer = fopen(argv[2], "w"); // argv[2]
 
     // assign system_status.txt to outputSecondFilePointer in write mode
-    outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
+    // outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
 
     // load PCBs from input file
     InputFileProcesser(traceFilePointer);
