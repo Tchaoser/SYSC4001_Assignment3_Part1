@@ -19,10 +19,10 @@ FILE* traceFilePointer; // create a pointer to the trace file
 FILE* outputFilePointer; // create a pointer to the output file
 char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each line from the trace file
 
-// readyQueue operations
-int readyQueueLength(readyQueueNode* headReadyQueueNode){
+// customQueue operations
+int customQueueLength(customQueueNode* headCustomQueueNode){
     int lengthCounter = 0;
-    readyQueueNode* current_node = headReadyQueueNode;
+    customQueueNode* current_node = headCustomQueueNode;
     for (; current_node != NULL; current_node = current_node->next){
         lengthCounter++
     }
@@ -31,20 +31,20 @@ int readyQueueLength(readyQueueNode* headReadyQueueNode){
 }
 
 // Add a node to the end of the ready queue with its relevant information
-void readyQueueAddNode(struct readyQueueNode* headReadyQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
-    struct readyQueueNode* nodeToAdd = malloc(sizeof(struct readyQueueNode));
+void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
+    struct customQueueNode* nodeToAdd = malloc(sizeof(struct customQueueNode));
     int queueLength = readyQueueLength(headReadyQueueNode);
     nodeToAdd->index = queueLength;
     nodeToAdd->pcb = pcbToAdd;
-    nodeToAdd->readySinceTime = timeOfArrival;
+    nodeToAdd->queueArrivalTime = timeOfArrival;
     nodeToAdd->next = NULL;
 
     if (queueLength == 0){
-        headReadyQueueNode = nodeToAdd;
+        headCustomQueueNode = nodeToAdd;
         return;
     }
     else{
-        readyQueueNode* current_node = headReadyQueueNode;
+        customQueueNode* current_node = headCustomQueueNode;
         // Find the last node and set its next node to the nodeToAdd;
         for (; current_node != NULL; current_node = current_node->next){
             if (current_node->next == NULL){
@@ -56,8 +56,8 @@ void readyQueueAddNode(struct readyQueueNode* headReadyQueueNode, struct PCB* pc
 }
 
 // Finds the node of a linked list at a given index, and returns the node (without modifying it)
-struct readyQueueNode* getNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToGetAt)(
-    readyQueueNode* current_node = headReadyQueueNode;
+struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt)(
+    customQueueNode* current_node = headCustomQueueNode;
     int currentIndex = 0;
     for (; current_node != NULL; current_node = current_node->next){
         if (currentIndex == indexToGetAt){
@@ -72,9 +72,9 @@ struct readyQueueNode* getNodeAtIndex(struct readyQueueNode* headReadyQueueNode,
 )
 
 // Removes the node of a linked list at a given index, and returns the index of the node 
-int removeNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToRemoveAt){
-    readyQueueNode* current_node = headReadyQueueNode;
-    readyQueueNode* previous_node = NULL;
+int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt){
+    customQueueNode* current_node = headCustomQueueNode;
+    customQueueNode* previous_node = NULL;
     int currentIndex = 0;
 
     for (; current_node != NULL; current_node = current_node->next){
@@ -82,13 +82,13 @@ int removeNodeAtIndex(struct readyQueueNode* headReadyQueueNode, int indexToRemo
             // if we're removing the first node, and its next node is null
             if (currentIndex == 0 && current_node->next == NULL){
                 // just set the head of the linked list to NULL
-                headReadyQueueNode = NULL;
+                headCustomQueueNode = NULL;
                 return 0; // return 0 (signifies node at index 0 was deleted)
             }
             
             // if we're not removing the first node, we want to have the previous one link to
             previous_node->next = current_node->next;
-            int indexOfNodeDeleted = current->index;
+            int indexOfNodeDeleted = current_node->index;
             free(current_node);
             current_node = NULL;
             return indexOfNodeDeleted; // return indexOfNodeDeleted (signifies node at that index was deleted)
@@ -144,9 +144,9 @@ bool programRunning(){
     return false;
 }
 
-struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
+struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     // initialize the earliest 
-    int readyQueueLength = readyQueueLength(headReadyQueueNode);
+    int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
         return NULL;
@@ -161,13 +161,13 @@ struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
         // readyQueueLength >= 2
         // need to choose the best to select
 
-        struct readyQueueNode* earliestArrivingNode = headReadyQueueNode;
-        readyQueueNode* current_node = headReadyQueueNode->next;
+        struct customQueueNode* earliestArrivingNode = headReadyQueueNode;
+        customQueueNode* current_node = headReadyQueueNode->next;
 
         // find the earliest arriving node
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived earlier than
-            if (current_node->readySinceTime < earliestArrivingNode){
+            if (current_node->queueTimeArrival < earliestArrivingNode){
                 earliestArrivingNode = current_node;
             }
         }
@@ -176,7 +176,7 @@ struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
         // find the node with the highest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived at the same time as the earliest arriving node
-            if (current_node->readySinceTime = earliestArrivingNode->readySinceTime){
+            if (current_node->queueTimeArrival == earliestArrivingNode->queueTimeArrival){
                 // if th ecurrent node has a lower pid
                 if (current_node->pcb->PID < earliestArrivingNode->pcb->PID){
                     earliestArrivingNode = current_node;
@@ -188,7 +188,7 @@ struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
         struct PCB* pcbSelected = earliestArrivingNode->pcb;
         int indexOfNodeToDelete = earliestArrivingNode->index;
         removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
-        return pcbSelected; // return the pcb of the program that is selected to start running
+        return pcbSelected; // return the pcb of the program that we've selected to run
     }
 
     // the function should never get to this point, if so, return NULL
@@ -196,8 +196,10 @@ struct PCB* selectNextReadyProgram(struct readyQueueNode* headReadyQueueNode) {
 }
 
 void FcfsScheduler() {
+    struct PCB* runningPCB = NULL;
     unsigned int runTimeLeft = 0;
-    struct readyQueueNode* headReadyQueueNode = NULL;
+    struct customQueueNode* headReadyQueueNode = NULL;
+    struct customQueueNode* headWaitingQueueNode = NULL;
 
     while (!programs_done()) {
         
@@ -216,7 +218,7 @@ void FcfsScheduler() {
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
                             // this program should go from new to ready now
                             PCBArray[i].state = READY;
-                            // ready_que.add({i, cpu_time});                                                   WARNING! CANT ACTUALLY DO ARRAYLIST IN C
+                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
                             break; // break because the search for an available partition is over
                         }
                     }
@@ -224,18 +226,32 @@ void FcfsScheduler() {
             }
         }
 
+        
         // check if something is running (RUNNING)
-        if (programRunning){
+        if (runningPCB != NULL){
             // a program is currently running
+            if (runTimeLeft > 0){
+                if (runningPCB->Remaining_CPU == 0){
+                    // terminate the program
 
+                }
+            } 
+            else if (runTimeLeft == 0){
+                // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
+
+            }
         }
         else{
             // a program needs to be assigned (READY)
-            // int pcbToAssign = readyQueToActivate(ready_que);            WARNING! CANT ACTUALLY DO ARRAYLIST IN C
+            runningPCB = selectNextReadyProgram(headReadyQueueNode);
+            runTimeLeft = runningPCB->IO_Freq;
         }
 
         // check if something is waiting (WAITING)
 
+        
+
+        // after checking all PCBs at this time, update time
         cpu_time++;
     }
 

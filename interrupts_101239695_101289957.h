@@ -27,19 +27,12 @@ struct PCB {
     } state;
 };
 
-struct readyQueueNode {
+struct customQueueNode {
     int index;
     struct PCB* pcb;
-    int readySinceTime;
-    struct readyQueueNode* next;
+    int queueArrivalTime;
+    struct customQueueNode* next;
 }
-
-struct readyQueueNode{
-    unsigned int index;
-    struct PCB* pcb;
-    struct readyQueNode* next;
-};
-
 
 void routineScheduler();
 void memorySetup();
