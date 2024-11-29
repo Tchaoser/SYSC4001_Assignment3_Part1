@@ -25,23 +25,24 @@ struct PCB {
     enum State {            // Current state of the process
         NEW, READY, RUNNING, WAITING, TERMINATED
     } state;
-};
+} pcbShorthand;
 
 struct customQueueNode {
     int index;
     struct PCB* pcb;
     int queueArrivalTime;
     struct customQueueNode* next;
-};
+} cqnShorthand;
 
 int customQueueLength(struct customQueueNode* headCustomQueueNode);
 void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival);
-struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt);
+cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt);
 int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt);
 void memorySetup();
 void terminateProgram(struct PCB* pcb);
 bool programs_done();
-struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
+pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
+pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 void FcfsScheduler();
 void PriorityScheduler();
 void RoundRobinScheduler();

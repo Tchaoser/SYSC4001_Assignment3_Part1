@@ -56,7 +56,7 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
 }
 
 // Finds the node of a linked list at a given index, and returns the node (without modifying it)
-struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt)(
+cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt)(
     struct customQueueNode* current_node = headCustomQueueNode;
     int currentIndex = 0;
     for (; current_node != NULL; current_node = current_node->next){
@@ -131,17 +131,17 @@ bool programs_done() { //checks if program is done
     return true;
 }
 
-struct PCB* fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
+pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
-        return NULL;
+        return;
     }
     else if (readyQueueLength == 1){
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
         free(headReadyQueueNode); // free the head ready queue node
         headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return pcbToReturn; // return the pcb we took before freeing the node
+        return *pcbToReturn; // return the pcb we took before freeing the node
     }
     else{
         // readyQueueLength >= 2
@@ -177,21 +177,21 @@ struct PCB* fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         return pcbSelected; // return the pcb of the program that we've selected to run
     }
 
-    // the function should never get to this point, if so, return NULL
-    return NULL;
+    // the function should never get to this point, if so, return 
+    return;
 }
 
-struct PCB* epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
+pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
-        return NULL;
+        return;
     }
     else if (readyQueueLength == 1){
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
         free(headReadyQueueNode); // free the head ready queue node
         headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return pcbToReturn; // return the pcb we took before freeing the node
+        return *pcbToReturn; // return the pcb we took before freeing the node
     }
     else{
         // readyQueueLength >= 2
@@ -225,14 +225,14 @@ struct PCB* epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode)
         struct PCB* pcbSelected = smallestRunTimeLeftNode->pcb;
         int indexOfNodeToDelete = smallestRunTimeLeftNode->index;
         removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
-        return pcbSelected; // return the pcb of the program that we've selected to run
+        return *pcbSelected; // return the pcb of the program that we've selected to run
     }
 
-    // the function should never get to this point, if so, return NULL
-    return NULL;
+    // the function should never get to this point, if so, return
+    return;
 }
 
-void FcfsScheduler() {
+void fcfsScheduler() {
     struct PCB* runningPCB = NULL;
     unsigned int runTimeLeft = 0;
     struct customQueueNode* headReadyQueueNode = NULL;
@@ -257,7 +257,7 @@ void FcfsScheduler() {
                             PCBArray[i].state = READY; // set to READY (1)
                             customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
                             // Record execution + memory_status output
-                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->pid, 0, 1); // NEW -> READY
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
                             recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
                         }
@@ -286,7 +286,7 @@ void FcfsScheduler() {
                 customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 3); // RUNNING -> WAITING
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
 
                 // reset runningPCB to NULL
                 runningPCB = NULL;
@@ -298,7 +298,7 @@ void FcfsScheduler() {
             runTimeLeft = runningPCB->IO_Freq;
 
             // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 1, 2); // READY -> RUNNING
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
         }
 
         // process all waiting programs (WAITING)
@@ -308,7 +308,7 @@ void FcfsScheduler() {
             int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
             next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
-            if (timeSpentWaiting == current_node->IO_Duration){
+            if (timeSpentWaiting == current_node->pcb->IO_Duration){
                 // the current program is done waiting
                 // assign it back to ready queue
                 struct PCB* pcbToAssign = current_node->pcb;
@@ -316,11 +316,11 @@ void FcfsScheduler() {
                 customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->pid, 3, 1); // WAITING -> READY
+                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->PID, 3, 1); // WAITING -> READY
 
                 // remove it from waiting queue
                 int indexOfNodeToDelete = current_node->index;
-                removeNodeAtIndex(headWaitingQueueNode, indexOfNodetoDelete);
+                removeNodeAtIndex(headWaitingQueueNode, indexOfNodeToDelete);
             }
         }
 
@@ -355,7 +355,7 @@ void PriorityScheduler() {
                             PCBArray[i].state = READY; // set to READY (1)
                             customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
                             // Record execution + memory_status output
-                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->pid, 0, 1); // NEW -> READY
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
                             recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
                         }
@@ -370,7 +370,7 @@ void PriorityScheduler() {
             if (runTimeLeft > 0){
                 if (runningPCB->Remaining_CPU == 0){
                     // Record execution + memory_status output
-                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 4); // RUNNING -> TERMINATED
+                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 4); // RUNNING -> TERMINATED
                     recordMemoryStatus(outputSecondFilePointer, cpu_time);
 
                     // terminate the program
@@ -384,7 +384,7 @@ void PriorityScheduler() {
                 customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 3); // RUNNING -> WAITING
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
 
                 // reset runningPCB to NULL
                 runningPCB = NULL;
@@ -396,7 +396,7 @@ void PriorityScheduler() {
             runTimeLeft = runningPCB->IO_Freq;
 
             // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 1, 2); // READY -> RUNNING
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
         }
 
         // process all waiting programs (WAITING)
@@ -543,7 +543,7 @@ int main(int argc, char* argv[])
     InputFileProcesser(traceFilePointer);
 
     if (strcmp(chosenAlgorithm, "FCFS") == 0){
-        fcfsScheduler()
+        fcfsScheduler();
     }
     else if (strcmp(chosenAlgorithm, "EP") == 0){
         PriorityScheduler();
