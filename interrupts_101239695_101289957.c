@@ -1,6 +1,7 @@
 #include "interrupts_101239695_101289957.h"
 #define BUFFER_SIZE 32
-#define PARTITION_ARRAY_LENGTH = 6;
+#define PARTITION_ARRAY_LENGTH 6;
+#define MEMORY_IN_PARTITIONS 100
 
 // instantiating arrays
 struct partition partitionArray[6];
@@ -330,7 +331,7 @@ void FcfsScheduler() {
 }
 
 void PriorityScheduler() {
-        struct PCB* runningPCB = NULL;
+    struct PCB* runningPCB = NULL;
     unsigned int runTimeLeft = 0;
     struct customQueueNode* headReadyQueueNode = NULL;
     struct customQueueNode* headWaitingQueueNode = NULL;
@@ -482,14 +483,29 @@ void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, 
 void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
     // memory_status_file line print
 
-    // calculate memory used
-    int memoryUsed = 0;
-
     // calculate total free memory
     int totalFreeMemory = 0;
-
-    // calculate usable free memory
     int usableFreeMemory = 0;
+
+    for (int i = 0; i < PARTITION_ARRAY_LENGTH; i++){
+        if (partitonArray[i].occupyingPID == -1){
+            totalFreeMemory += partitionArray[i].size;
+            usableFreeMemory += partitionArray[i].size;
+        }
+        else{
+            // partition is occupied by a program
+            for (int j = 0; PCBArray[j].PID == 0; i++) {
+                if (PCBArray[j].PID == partitonArray[i].occupyingPID){
+                    // this is the program that occupies it
+                    totalFreeMemory += (partitionArray[i].size - PCBArray[j].Mem_Size)
+                    break; // found the program that occupies it, go to next partition
+                }
+            }
+        }
+    }
+
+    // calculate memory used
+    int memoryUsed = MEMORY_IN_PARTITIONS - usableFreeMemory;
 
     fprintf(memory_status_file, "| %d | %d |", timeOfEvent, memoryUsed);
     
@@ -503,7 +519,6 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
     }
 
     fprintf(memory_status_file, " %d | %d |\n", totalFreeMemory, usableFreeMemory);
-
 }
 
 int main(int argc, char* argv[])
