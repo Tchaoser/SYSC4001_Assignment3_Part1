@@ -13,7 +13,7 @@ struct partition {
     int occupyingPID;
 };
 
-struct PCB {
+typedef struct PCB {
     unsigned int PID;
     unsigned int CPU_Time;
     unsigned int Arrival_Time;
@@ -27,7 +27,7 @@ struct PCB {
     } state;
 } pcbShorthand;
 
-struct customQueueNode {
+typedef struct customQueueNode {
     int index;
     struct PCB* pcb;
     int queueArrivalTime;

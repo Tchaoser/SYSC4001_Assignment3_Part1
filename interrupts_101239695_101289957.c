@@ -56,7 +56,7 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
 }
 
 // Finds the node of a linked list at a given index, and returns the node (without modifying it)
-cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt)(
+cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt){
     struct customQueueNode* current_node = headCustomQueueNode;
     int currentIndex = 0;
     for (; current_node != NULL; current_node = current_node->next){
@@ -69,12 +69,12 @@ cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int in
 
     // if we never returned a node, a node at that index doesn't exist
     return NULL;
-)
+}
 
 // Removes the node of a linked list at a given index, and returns the index of the node 
 int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt){
-    customQueueNode* current_node = headCustomQueueNode;
-    customQueueNode* previous_node = NULL;
+    struct customQueueNode* current_node = headCustomQueueNode;
+    struct customQueueNode* previous_node = NULL;
     int currentIndex = 0;
 
     for (; current_node != NULL; current_node = current_node->next){
@@ -141,7 +141,7 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
         free(headReadyQueueNode); // free the head ready queue node
         headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return *pcbToReturn; // return the pcb we took before freeing the node
+        return pcbToReturn; // return the pcb we took before freeing the node
     }
     else{
         // readyQueueLength >= 2
@@ -191,7 +191,7 @@ pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
         free(headReadyQueueNode); // free the head ready queue node
         headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return *pcbToReturn; // return the pcb we took before freeing the node
+        return pcbToReturn; // return the pcb we took before freeing the node
     }
     else{
         // readyQueueLength >= 2
@@ -225,7 +225,7 @@ pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         struct PCB* pcbSelected = smallestRunTimeLeftNode->pcb;
         int indexOfNodeToDelete = smallestRunTimeLeftNode->index;
         removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
-        return *pcbSelected; // return the pcb of the program that we've selected to run
+        return pcbSelected; // return the pcb of the program that we've selected to run
     }
 
     // the function should never get to this point, if so, return
@@ -255,9 +255,9 @@ void fcfsScheduler() {
                             partitionArray[j].occupyingPID = PCBArray[i].PID;
                             // this program should go from new to ready now
                             PCBArray[i].state = READY; // set to READY (1)
-                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
+                            customQueueAddNode(headReadyQueueNode, *PCBArray[i], cpu_time);
                             // Record execution + memory_status output
-                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i].PID, 0, 1); // NEW -> READY
                             recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
                         }
@@ -272,7 +272,7 @@ void fcfsScheduler() {
             if (runTimeLeft > 0){
                 if (runningPCB->Remaining_CPU == 0){
                     // Record execution + memory_status output
-                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 4); // RUNNING -> TERMINATED
+                    recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 2, 4); // RUNNING -> TERMINATED
                     recordMemoryStatus(outputSecondFilePointer, cpu_time);
 
                     // terminate the program
@@ -286,7 +286,7 @@ void fcfsScheduler() {
                 customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 2, 3); // RUNNING -> WAITING
 
                 // reset runningPCB to NULL
                 runningPCB = NULL;
@@ -298,14 +298,14 @@ void fcfsScheduler() {
             runTimeLeft = runningPCB->IO_Freq;
 
             // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 1, 2); // READY -> RUNNING
         }
 
         // process all waiting programs (WAITING)
         struct customQueueNode* current_node = headWaitingQueueNode;
         struct customQueueNode* next_node = NULL;
         for (; current_node != NULL; current_node = next_node){
-            int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
+            int timeSpentWaiting = cpu_time - current_node.queueArrivalTime; // as low as 0
             next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
             if (timeSpentWaiting == current_node->pcb->IO_Duration){
