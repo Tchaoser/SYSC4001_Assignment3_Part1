@@ -20,11 +20,11 @@ FILE* outputSecondFilePointer; // create a pointer to the memory_status file
 char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each line from the trace file
 
 // customQueue operations
-int customQueueLength(customQueueNode* headCustomQueueNode){
+int customQueueLength(struct customQueueNode* headCustomQueueNode){
     int lengthCounter = 0;
-    customQueueNode* current_node = headCustomQueueNode;
+    struct customQueueNode* current_node = headCustomQueueNode;
     for (; current_node != NULL; current_node = current_node->next){
-        lengthCounter++
+        lengthCounter++;
     }
 
     return lengthCounter++;
@@ -33,7 +33,7 @@ int customQueueLength(customQueueNode* headCustomQueueNode){
 // Add a node to the end of the ready queue with its relevant information
 void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
     struct customQueueNode* nodeToAdd = malloc(sizeof(struct customQueueNode));
-    int queueLength = readyQueueLength(headReadyQueueNode);
+    int queueLength = readyQueueLength(headCustomQueueNode);
     nodeToAdd->index = queueLength;
     nodeToAdd->pcb = pcbToAdd;
     nodeToAdd->queueArrivalTime = timeOfArrival;
@@ -44,11 +44,11 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
         return;
     }
     else{
-        customQueueNode* current_node = headCustomQueueNode;
+        struct customQueueNode* current_node = headCustomQueueNode;
         // Find the last node and set its next node to the nodeToAdd;
         for (; current_node != NULL; current_node = current_node->next){
             if (current_node->next == NULL){
-                current_node->next = pcbToAdd;
+                current_node->next = nodeToAdd;
                 return;
             }
         }
@@ -57,7 +57,7 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
 
 // Finds the node of a linked list at a given index, and returns the node (without modifying it)
 struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt)(
-    customQueueNode* current_node = headCustomQueueNode;
+    struct customQueueNode* current_node = headCustomQueueNode;
     int currentIndex = 0;
     for (; current_node != NULL; current_node = current_node->next){
         if (currentIndex == indexToGetAt){
@@ -148,12 +148,12 @@ struct PCB* fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         // need to choose the best to select
 
         struct customQueueNode* earliestArrivingNode = headReadyQueueNode;
-        customQueueNode* current_node = headReadyQueueNode->next;
+        struct customQueueNode* current_node = headReadyQueueNode->next;
 
         // find the earliest arriving node
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived earlier than
-            if (current_node->queueTimeArrival < earliestArrivingNode->queueTimeArrival){
+            if (current_node->queueArrivalTime < earliestArrivingNode->queueArrivalTime){
                 earliestArrivingNode = current_node;
             }
         }
@@ -162,7 +162,7 @@ struct PCB* fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         // find the node with the lowest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived at the same time as the earliest arriving node
-            if (current_node->queueTimeArrival == earliestArrivingNode->queueTimeArrival){
+            if (current_node->queueArrivalTime == earliestArrivingNode->queueArrivalTime){
                 // if th current node has a lower pid
                 if (current_node->pcb->PID < earliestArrivingNode->pcb->PID){
                     earliestArrivingNode = current_node;
@@ -199,7 +199,7 @@ struct PCB* epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode)
         // PRIORITY: Task with the smallest run time left
 
         struct customQueueNode* smallestRunTimeLeftNode = headReadyQueueNode;
-        customQueueNode* current_node = headReadyQueueNode->next;
+        struct customQueueNode* current_node = headReadyQueueNode->next;
 
         // find the node with the smallest run time left
         for (; current_node != NULL; current_node = current_node->next){
@@ -554,7 +554,7 @@ int main(int argc, char* argv[])
     else{
         printf("Invalid submission! ERROR!!!!\n");
     }
-    
+
     // End of instructions, close program
 
     fclose(traceFilePointer);

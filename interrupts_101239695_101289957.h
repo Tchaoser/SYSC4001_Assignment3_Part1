@@ -32,9 +32,9 @@ struct customQueueNode {
     struct PCB* pcb;
     int queueArrivalTime;
     struct customQueueNode* next;
-}
+};
 
-int customQueueLength(customQueueNode* headCustomQueueNode);
+int customQueueLength(struct customQueueNode* headCustomQueueNode);
 void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival);
 struct customQueueNode* getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt);
 int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt);
