@@ -534,19 +534,27 @@ int main(int argc, char* argv[])
     strcpy(chosenAlgorithm, argv[2]);
 
     // assign ProgramOutput1.txt to outputFilePointer in write mode
-    // outputFilePointer = fopen(argv[2], "w"); // argv[2]
+    outputFilePointer = fopen("execution.txt", "w");
 
     // assign system_status.txt to outputSecondFilePointer in write mode
-    // outputSecondFilePointer = fopen(argv[3], "w"); // argv[3]
+    outputSecondFilePointer = fopen("memory_status", "w");
 
     // load PCBs from input file
     InputFileProcesser(traceFilePointer);
 
-    // system_status initial print
-    //printSystemStatus();
-
-    // runProgram(traceFilePointer);
-
+    if (strcmp(chosenAlgorithm, "FCFS") == 0){
+        fcfsScheduler()
+    }
+    else if (strcmp(chosenAlgorithm, "EP") == 0){
+        PriorityScheduler();
+    }
+    else if (strcmp(chosenAlgorithm, "RR") == 0){
+        RoundRobinScheduler();
+    }
+    else{
+        printf("Invalid submission! ERROR!!!!\n");
+    }
+    
     // End of instructions, close program
 
     fclose(traceFilePointer);
