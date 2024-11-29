@@ -5,7 +5,7 @@
 
 // instantiating arrays
 struct partition partitionArray[6];
-struct PCB PCBArray[100];
+struct PCB *PCBArray[100];
 
 // =-=     
 bool modeBit = 0;
@@ -33,7 +33,7 @@ int customQueueLength(struct customQueueNode* headCustomQueueNode){
 // Add a node to the end of the ready queue with its relevant information
 void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
     struct customQueueNode* nodeToAdd = malloc(sizeof(struct customQueueNode));
-    int queueLength = readyQueueLength(headCustomQueueNode);
+    int queueLength = customQueueLength(headCustomQueueNode);
     nodeToAdd->index = queueLength;
     nodeToAdd->pcb = pcbToAdd;
     nodeToAdd->queueArrivalTime = timeOfArrival;
@@ -112,7 +112,7 @@ void memorySetup() {
     partitionArray[5].number = 6; partitionArray[5].size = 2; partitionArray[5].occupyingPID = -1;
 
     for (int i = 0; i < 100; i++){
-        PCBArray[i].PID = 0;
+        PCBArray[i]->PID = 0;
     }
 }
 
@@ -123,8 +123,8 @@ void terminateProgram(struct PCB* pcb) {
 }
 
 bool programs_done() { //checks if program is done
-    for (int i = 0; PCBArray[i].PID == 0; i++) {
-        if (PCBArray[i].state != TERMINATED) {
+    for (int i = 0; PCBArray[i]->PID == 0; i++) {
+        if (PCBArray[i]->state != TERMINATED) {
             return false;
         }
     }
@@ -135,7 +135,7 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
-        return;
+        // Do nothing
     }
     else if (readyQueueLength == 1){
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
@@ -177,15 +177,14 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
         return pcbSelected; // return the pcb of the program that we've selected to run
     }
 
-    // the function should never get to this point, if so, return 
-    return;
+    // the function should never get to this point
 }
 
 pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
-        return;
+        // Do nothing
     }
     else if (readyQueueLength == 1){
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
@@ -228,8 +227,7 @@ pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNod
         return pcbSelected; // return the pcb of the program that we've selected to run
     }
 
-    // the function should never get to this point, if so, return
-    return;
+    // the function should never get to this point
 }
 
 void fcfsScheduler() {
@@ -241,23 +239,23 @@ void fcfsScheduler() {
     while (!programs_done()) {
         
         // checking what's arrived (NEW)
-        for (int i = 0; PCBArray[i].PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+        for (int i = 0; PCBArray[i]->PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
             // if the current program has arrived and is new
-            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) {
+            if (PCBArray[i]->Arrival_Time >= cpu_time && PCBArray[i]->state == NEW) {
                 // look for a partition to assign it to from lowest to highest available memory       
                 for (int j = 5; j >= 0; j--){
                     // if the current partition is available
                     if (partitionArray[j].occupyingPID == -1){
                         // if the size available in the current partition is enough to store the program
-                        if (partitionArray[j].size >= PCBArray[i].Mem_Size){
+                        if (partitionArray[j].size >= PCBArray[i]->Mem_Size){
                             // set partition and pcb information to match each other (we store this program in this partition)
-                            PCBArray[i].partitionInUse = partitionArray[j].number;
-                            partitionArray[j].occupyingPID = PCBArray[i].PID;
+                            PCBArray[i]->partitionInUse = partitionArray[j].number;
+                            partitionArray[j].occupyingPID = PCBArray[i]->PID;
                             // this program should go from new to ready now
-                            PCBArray[i].state = READY; // set to READY (1)
-                            customQueueAddNode(headReadyQueueNode, *PCBArray[i], cpu_time);
+                            PCBArray[i]->state = READY; // set to READY (1)
+                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
                             // Record execution + memory_status output
-                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i].PID, 0, 1); // NEW -> READY
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
                             recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
                         }
@@ -272,11 +270,11 @@ void fcfsScheduler() {
             if (runTimeLeft > 0){
                 if (runningPCB->Remaining_CPU == 0){
                     // Record execution + memory_status output
-                    recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 2, 4); // RUNNING -> TERMINATED
+                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 4); // RUNNING -> TERMINATED
                     recordMemoryStatus(outputSecondFilePointer, cpu_time);
 
                     // terminate the program
-                    terminatePCB(runningPCB);
+                    terminateProgram(runningPCB);
                     runningPCB = NULL;
                 }
             } 
@@ -286,7 +284,7 @@ void fcfsScheduler() {
                 customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 2, 3); // RUNNING -> WAITING
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
 
                 // reset runningPCB to NULL
                 runningPCB = NULL;
@@ -298,14 +296,14 @@ void fcfsScheduler() {
             runTimeLeft = runningPCB->IO_Freq;
 
             // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB.PID, 1, 2); // READY -> RUNNING
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
         }
 
         // process all waiting programs (WAITING)
         struct customQueueNode* current_node = headWaitingQueueNode;
         struct customQueueNode* next_node = NULL;
         for (; current_node != NULL; current_node = next_node){
-            int timeSpentWaiting = cpu_time - current_node.queueArrivalTime; // as low as 0
+            int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
             next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
             if (timeSpentWaiting == current_node->pcb->IO_Duration){
@@ -339,20 +337,20 @@ void PriorityScheduler() {
     while (!programs_done()) {
         
         // checking what's arrived (NEW)
-        for (int i = 0; PCBArray[i].PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+        for (int i = 0; PCBArray[i]->PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
             // if the current program has arrived and is new
-            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) {
+            if (PCBArray[i]->Arrival_Time >= cpu_time && PCBArray[i]->state == NEW) {
                 // look for a partition to assign it to from lowest to highest available memory       
                 for (int j = 5; j >= 0; j--){
                     // if the current partition is available
                     if (partitionArray[j].occupyingPID == -1){
                         // if the size available in the current partition is enough to store the program
-                        if (partitionArray[j].size >= PCBArray[i].Mem_Size){
+                        if (partitionArray[j].size >= PCBArray[i]->Mem_Size){
                             // set partition and pcb information to match each other (we store this program in this partition)
-                            PCBArray[i].partitionInUse = partitionArray[j].number;
-                            partitionArray[j].occupyingPID = PCBArray[i].PID;
+                            PCBArray[i]->partitionInUse = partitionArray[j].number;
+                            partitionArray[j].occupyingPID = PCBArray[i]->PID;
                             // this program should go from new to ready now
-                            PCBArray[i].state = READY; // set to READY (1)
+                            PCBArray[i]->state = READY; // set to READY (1)
                             customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
                             // Record execution + memory_status output
                             recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
@@ -374,7 +372,7 @@ void PriorityScheduler() {
                     recordMemoryStatus(outputSecondFilePointer, cpu_time);
 
                     // terminate the program
-                    terminatePCB(runningPCB);
+                    terminateProgram(runningPCB);
                     runningPCB = NULL;
                 }
             } 
@@ -406,7 +404,7 @@ void PriorityScheduler() {
             int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
             next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
-            if (timeSpentWaiting == current_node->IO_Duration){
+            if (timeSpentWaiting == current_node->pcb->IO_Duration){
                 // the current program is done waiting
                 // assign it back to ready queue
                 struct PCB* pcbToAssign = current_node->pcb;
@@ -414,11 +412,11 @@ void PriorityScheduler() {
                 customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
 
                 // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->pid, 3, 1); // WAITING -> READY
+                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->PID, 3, 1); // WAITING -> READY
 
                 // remove it from waiting queue
                 int indexOfNodeToDelete = current_node->index;
-                removeNodeAtIndex(headWaitingQueueNode, indexOfNodetoDelete);
+                removeNodeAtIndex(headWaitingQueueNode, indexOfNodeToDelete);
             }
         }
 
@@ -436,24 +434,27 @@ void InputFileProcesser(FILE* traceFilePointer) {
     unsigned int counter = 0;
 
     while(fgets(buffer, BUFFER_SIZE, traceFilePointer)) {
+        struct PCB* newPCB = malloc(sizeof(struct PCB));
+        PCBArray[counter] = newPCB;
+
         char *token = strtok(buffer, ","); // "0"
-        PCBArray[counter].PID = atoi(token);
+        PCBArray[counter]->PID = atoi(token);
         token = strtok(buffer, ","); // "1"
-        PCBArray[counter].Mem_Size = atoi(token);
+        PCBArray[counter]->Mem_Size = atoi(token);
         token = strtok(buffer, ","); // "0"
-        PCBArray[counter].Arrival_Time = atoi(token);
+        PCBArray[counter]->Arrival_Time = atoi(token);
         token = strtok(buffer, ","); // "50"
-        PCBArray[counter].CPU_Time = atoi(token);
+        PCBArray[counter]->CPU_Time = atoi(token);
         token = strtok(buffer, ","); // "10"
-        PCBArray[counter].IO_Freq = atoi(token);
+        PCBArray[counter]->IO_Freq = atoi(token);
         token = strtok(buffer, ","); // "1"
-        PCBArray[counter].IO_Duration = atoi(token);
+        PCBArray[counter]->IO_Duration = atoi(token);
 
         counter++;
     }
 }
 
-void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, int oldState, int newState) {
+void recordStateTransition(FILE* execution_file, int timeOfTransition, unsigned int pid, int oldState, int newState) {
     // execution_file line print
 
     // string var for old and new state name to print
@@ -487,17 +488,17 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
     int totalFreeMemory = 0;
     int usableFreeMemory = 0;
 
-    for (int i = 0; i < PARTITION_ARRAY_LENGTH; i++){
-        if (partitonArray[i].occupyingPID == -1){
+    for (int i = 0; i < 6; i++){
+        if (partitionArray[i].occupyingPID == -1){
             totalFreeMemory += partitionArray[i].size;
             usableFreeMemory += partitionArray[i].size;
         }
         else{
             // partition is occupied by a program
-            for (int j = 0; PCBArray[j].PID == 0; i++) {
-                if (PCBArray[j].PID == partitonArray[i].occupyingPID){
+            for (int j = 0; PCBArray[j]->PID == 0; i++) {
+                if (PCBArray[j]->PID == partitionArray[i].occupyingPID){
                     // this is the program that occupies it
-                    totalFreeMemory += (partitionArray[i].size - PCBArray[j].Mem_Size)
+                    totalFreeMemory += (partitionArray[i].size - PCBArray[j]->Mem_Size);
                     break; // found the program that occupies it, go to next partition
                 }
             }
@@ -509,12 +510,12 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
 
     fprintf(memory_status_file, "| %d | %d |", timeOfEvent, memoryUsed);
     
-    for (int i = 0; i < PARTITION_ARRAY_LENGTH; i++){
-        if (i == PARTITION_ARRAY_LENGTH - 1){
-            fprintf(memory_status_file, "%d |", partitionArray[i]->occupyingPID);
+    for (int i = 0; i < 6; i++){
+        if (i == 6 - 1){
+            fprintf(memory_status_file, "%d |", partitionArray[i].occupyingPID);
         }
         else{
-            fprintf(memory_status_file, "%d, ", partitionArray[i]->occupyingPID);
+            fprintf(memory_status_file, "%d, ", partitionArray[i].occupyingPID);
         }
     }
 
@@ -530,7 +531,7 @@ int main(int argc, char* argv[])
     traceFilePointer = fopen(argv[1], "r"); // argv[1]
 
     // take the chosen algorithm from the second argument
-    char[10] chosenAlgorithm;
+    char chosenAlgorithm[10];
     strcpy(chosenAlgorithm, argv[2]);
 
     // assign ProgramOutput1.txt to outputFilePointer in write mode

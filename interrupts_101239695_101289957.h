@@ -47,7 +47,7 @@ void FcfsScheduler();
 void PriorityScheduler();
 void RoundRobinScheduler();
 void InputFileProcesser(FILE* traceFilePointer);
-void recordStateTransition(FILE* execution_file, int timeOfTransition, int pid, int oldState, int newState);
+void recordStateTransition(FILE* execution_file, int timeOfTransition, unsigned int pid, int oldState, int newState);
 void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent);
 
 #endif
