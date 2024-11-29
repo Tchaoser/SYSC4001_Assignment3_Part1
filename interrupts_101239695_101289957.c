@@ -130,8 +130,7 @@ bool programs_done() { //checks if program is done
     return true;
 }
 
-struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
-    // initialize the earliest 
+struct PCB* fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
@@ -153,17 +152,17 @@ struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
         // find the earliest arriving node
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived earlier than
-            if (current_node->queueTimeArrival < earliestArrivingNode){
+            if (current_node->queueTimeArrival < earliestArrivingNode->queueTimeArrival){
                 earliestArrivingNode = current_node;
             }
         }
 
         current_node = headReadyQueueNode;
-        // find the node with the highest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
+        // find the node with the lowest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived at the same time as the earliest arriving node
             if (current_node->queueTimeArrival == earliestArrivingNode->queueTimeArrival){
-                // if th ecurrent node has a lower pid
+                // if th current node has a lower pid
                 if (current_node->pcb->PID < earliestArrivingNode->pcb->PID){
                     earliestArrivingNode = current_node;
                 }
@@ -173,6 +172,57 @@ struct PCB* selectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
         // by this time we've selected the earliest arriving node, and if there are multiple, we chose the one with the lowest pid
         struct PCB* pcbSelected = earliestArrivingNode->pcb;
         int indexOfNodeToDelete = earliestArrivingNode->index;
+        removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
+        return pcbSelected; // return the pcb of the program that we've selected to run
+    }
+
+    // the function should never get to this point, if so, return NULL
+    return NULL;
+}
+
+struct PCB* epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
+    int readyQueueLength = customQueueLength(headReadyQueueNode);
+
+    if (readyQueueLength == 0){
+        return NULL;
+    }
+    else if (readyQueueLength == 1){
+        struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
+        free(headReadyQueueNode); // free the head ready queue node
+        headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
+        return pcbToReturn; // return the pcb we took before freeing the node
+    }
+    else{
+        // readyQueueLength >= 2
+        // need to choose the best to select
+        // PRIORITY: Task with the smallest run time left
+
+        struct customQueueNode* smallestRunTimeLeftNode = headReadyQueueNode;
+        customQueueNode* current_node = headReadyQueueNode->next;
+
+        // find the node with the smallest run time left
+        for (; current_node != NULL; current_node = current_node->next){
+            // if the current node arrived earlier than
+            if (current_node->pcb->Remaining_CPU < smallestRunTimeLeftNode->pcb->Remaining_CPU){
+                smallestRunTimeLeftNode = current_node;
+            }
+        }
+
+        current_node = headReadyQueueNode;
+        // find the node with the lowest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
+        for (; current_node != NULL; current_node = current_node->next){
+            // if the current node arrived at the same time as the earliest arriving node
+            if (current_node->pcb->Remaining_CPU == smallestRunTimeLeftNode->pcb->Remaining_CPU){
+                // if th current node has a lower pid
+                if (current_node->pcb->PID < smallestRunTimeLeftNode->pcb->PID){
+                    smallestRunTimeLeftNode = current_node;
+                }
+            }
+        }
+
+        // by this time we've selected the node with the smallest, and if there are multiple, we chose the one with the lowest pid
+        struct PCB* pcbSelected = smallestRunTimeLeftNode->pcb;
+        int indexOfNodeToDelete = smallestRunTimeLeftNode->index;
         removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
         return pcbSelected; // return the pcb of the program that we've selected to run
     }
@@ -243,7 +293,7 @@ void FcfsScheduler() {
         }
         else{
             // a program needs to be assigned (READY)
-            runningPCB = selectNextReadyProgram(headReadyQueueNode);
+            runningPCB = fcfsSelectNextReadyProgram(headReadyQueueNode);
             runTimeLeft = runningPCB->IO_Freq;
 
             // Record execution output
@@ -280,7 +330,100 @@ void FcfsScheduler() {
 }
 
 void PriorityScheduler() {
+        struct PCB* runningPCB = NULL;
+    unsigned int runTimeLeft = 0;
+    struct customQueueNode* headReadyQueueNode = NULL;
+    struct customQueueNode* headWaitingQueueNode = NULL;
 
+    while (!programs_done()) {
+        
+        // checking what's arrived (NEW)
+        for (int i = 0; PCBArray[i].PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+            // if the current program has arrived and is new
+            if (PCBArray[i].Arrival_Time >= cpu_time && PCBArray[i].state == NEW) {
+                // look for a partition to assign it to from lowest to highest available memory       
+                for (int j = 5; j >= 0; j--){
+                    // if the current partition is available
+                    if (partitionArray[j].occupyingPID == -1){
+                        // if the size available in the current partition is enough to store the program
+                        if (partitionArray[j].size >= PCBArray[i].Mem_Size){
+                            // set partition and pcb information to match each other (we store this program in this partition)
+                            PCBArray[i].partitionInUse = partitionArray[j].number;
+                            partitionArray[j].occupyingPID = PCBArray[i].PID;
+                            // this program should go from new to ready now
+                            PCBArray[i].state = READY; // set to READY (1)
+                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
+                            // Record execution + memory_status output
+                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->pid, 0, 1); // NEW -> READY
+                            recordMemoryStatus(outputSecondFilePointer, cpu_time);
+                            break; // break because the search for an available partition is over
+                        }
+                    }
+                }    
+            }
+        }
+
+        // check if something is running (RUNNING)
+        if (runningPCB != NULL){
+            // a program is currently running
+            if (runTimeLeft > 0){
+                if (runningPCB->Remaining_CPU == 0){
+                    // Record execution + memory_status output
+                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 4); // RUNNING -> TERMINATED
+                    recordMemoryStatus(outputSecondFilePointer, cpu_time);
+
+                    // terminate the program
+                    terminatePCB(runningPCB);
+                    runningPCB = NULL;
+                }
+            } 
+            else if (runTimeLeft == 0){
+                // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
+                runningPCB->state = WAITING;
+                customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
+
+                // Record execution output
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 2, 3); // RUNNING -> WAITING
+
+                // reset runningPCB to NULL
+                runningPCB = NULL;
+            }
+        }
+        else{
+            // a program needs to be assigned (READY)
+            runningPCB = epSelectNextReadyProgram(headReadyQueueNode);
+            runTimeLeft = runningPCB->IO_Freq;
+
+            // Record execution output
+            recordStateTransition(outputFilePointer, cpu_time, runningPCB->pid, 1, 2); // READY -> RUNNING
+        }
+
+        // process all waiting programs (WAITING)
+        struct customQueueNode* current_node = headWaitingQueueNode;
+        struct customQueueNode* next_node = NULL;
+        for (; current_node != NULL; current_node = next_node){
+            int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
+            next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
+
+            if (timeSpentWaiting == current_node->IO_Duration){
+                // the current program is done waiting
+                // assign it back to ready queue
+                struct PCB* pcbToAssign = current_node->pcb;
+                pcbToAssign->state = READY;
+                customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
+
+                // Record execution output
+                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->pid, 3, 1); // WAITING -> READY
+
+                // remove it from waiting queue
+                int indexOfNodeToDelete = current_node->index;
+                removeNodeAtIndex(headWaitingQueueNode, indexOfNodetoDelete);
+            }
+        }
+
+        // after checking all PCBs at this time, update time
+        cpu_time++;
+    }
 }
 
 void RoundRobinScheduler() {
