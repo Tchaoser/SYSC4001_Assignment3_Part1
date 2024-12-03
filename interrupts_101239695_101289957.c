@@ -447,6 +447,8 @@ void fcfsScheduler() {
         }
         
     }
+    fprintf(outputFilePointer, "+------------------------------------------------+\n");
+    fprintf(outputSecondFilePointer, "+------------------------------------------------------------------------------------------+\n");
 }
 
 void PriorityScheduler() {
@@ -581,6 +583,8 @@ void PriorityScheduler() {
         }
         
     }
+    fprintf(outputFilePointer, "+------------------------------------------------+\n");
+    fprintf(outputSecondFilePointer, "+------------------------------------------------------------------------------------------+\n");
 }
 
 void RoundRobinScheduler() {
@@ -719,6 +723,9 @@ void RoundRobinScheduler() {
         }
         
     }
+
+    fprintf(outputFilePointer, "+------------------------------------------------+\n");
+    fprintf(outputSecondFilePointer, "+------------------------------------------------------------------------------------------+\n");
 }
 
 void InputFileProcesser(FILE* traceFilePointer) {
@@ -816,12 +823,10 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
 int main(int argc, char* argv[])
 {
     // assign MyTraceFile1.txt to traceFilePointer in read mode
-    traceFilePointer = fopen("input_test.txt", "r"); // argv[0]
-
+    traceFilePointer = fopen(argv[1], "r"); // argv[1]
     // take the chosen algorithm from the second argument
     char chosenAlgorithm[10];
-    strcpy(chosenAlgorithm, "RR"); // argv[1]
-
+    strcpy(chosenAlgorithm, argv[2]); // argv[2]
     // assign ProgramOutput1.txt to outputFilePointer in write mode
     outputFilePointer = fopen("execution.txt", "w");
 
@@ -853,22 +858,4 @@ int main(int argc, char* argv[])
     fclose(outputFilePointer);
     fclose(outputSecondFilePointer);
     return 0;   
-
-    /*
-    // randomly divide EXECBodyRunTime between the 5 tasks in EXEC body
-    int firstDivision = EXECBodyRunTime/5;
-    srand(time(0));
-    int rando = (rand() % firstDivision) + 1;
-    int Time1 = firstDivision + rando; // create 1st time block
-    int secondDivision = (EXECBodyRunTime - Time1) / 4;
-    rando = (rand() % secondDivision) + 1;
-    int Time2 = secondDivision + rando; // create 2nd time block
-    int thirdDivision = (EXECBodyRunTime - Time1 - Time2) / 3;
-    rando = (rand() % thirdDivision) + 1;
-    int Time3 = thirdDivision + rando; // create 3rd time block
-    int fourthDivision = (EXECBodyRunTime - Time1 - Time2 - Time3) / 2;
-    rando = (rand() % fourthDivision) + 1;
-    int Time4 = fourthDivision + rando; // create fourth time block
-    int Time5 = EXECBodyRunTime - Time1 - Time2 - Time3 - Time4; // create fifth time block
-    */
 }
