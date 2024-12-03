@@ -8,20 +8,20 @@
 #include <time.h>
 
 struct partition {
-    unsigned int number;
-    unsigned int size;
+    int number;
+    int size;
     int occupyingPID;
 };
 
 typedef struct PCB {
-    unsigned int PID;
-    unsigned int CPU_Time;
-    unsigned int Arrival_Time;
-    unsigned int Mem_Size;
-    unsigned int IO_Freq;
-    unsigned int IO_Duration;
-    unsigned int Remaining_CPU;
-    unsigned int partitionInUse;
+    int PID;
+    int CPU_Time;
+    int Arrival_Time;
+    int Mem_Size;
+    int IO_Freq;
+    int IO_Duration;
+    int Remaining_CPU;
+    int partitionInUse;
     enum State {            // Current state of the process
         NEW, READY, RUNNING, WAITING, TERMINATED
     } state;
@@ -34,14 +34,19 @@ typedef struct customQueueNode {
     struct customQueueNode* next;
 } cqnShorthand;
 
+struct returnPCB {
+    struct PCB* pcb;
+    struct customQueueNode* cqn;
+};
+
 int customQueueLength(struct customQueueNode* headCustomQueueNode);
-void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival);
+cqnShorthand *customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival);
 cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToGetAt);
-int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt);
+cqnShorthand *removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt);
 void memorySetup();
-void terminateProgram(struct PCB* pcb);
+struct PCB *terminateProgram(struct PCB* pcb);
 bool programs_done();
-pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
+struct returnPCB *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 void FcfsScheduler();
 void PriorityScheduler();

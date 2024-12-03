@@ -10,7 +10,7 @@ struct PCB *PCBArray[100];
 // =-=     
 bool modeBit = 0;
 int totalSystemRunTime = 0;
-unsigned int cpu_time = 0;
+int cpu_time = 0;
 // initializing vector table
 unsigned int vectorTable[] = {0X01E3, 0X029C, 0X0695, 0X042B, 0X0292, 0X048B, 0X0639, 0X00BD, 0X06EF, 0X036C, 0X07B0, 0X01F8, 0X03B9, 0X06C7, 0X0165, 0X0584, 0X02DF, 0X05B3, 0X060A, 0X0765, 0X07B7, 0X0523, 0X03B7, 0X028C, 0X05E8, 0X05D3};
 
@@ -23,6 +23,7 @@ char buffer[BUFFER_SIZE]; // create a buffer that is capable of reading each lin
 int customQueueLength(struct customQueueNode* headCustomQueueNode){
     int lengthCounter = 0;
     struct customQueueNode* current_node = headCustomQueueNode;
+
     for (; current_node != NULL; current_node = current_node->next){
         lengthCounter++;
     }
@@ -31,7 +32,7 @@ int customQueueLength(struct customQueueNode* headCustomQueueNode){
 }
 
 // Add a node to the end of the ready queue with its relevant information
-void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
+cqnShorthand *customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB* pcbToAdd, int timeOfArrival){
     struct customQueueNode* nodeToAdd = malloc(sizeof(struct customQueueNode));
     int queueLength = customQueueLength(headCustomQueueNode);
     nodeToAdd->index = queueLength;
@@ -41,7 +42,9 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
 
     if (queueLength == 0){
         headCustomQueueNode = nodeToAdd;
-        return;
+        
+        // printf(headCustomQueueNode);
+        return headCustomQueueNode;
     }
     else{
         struct customQueueNode* current_node = headCustomQueueNode;
@@ -49,7 +52,8 @@ void customQueueAddNode(struct customQueueNode* headCustomQueueNode, struct PCB*
         for (; current_node != NULL; current_node = current_node->next){
             if (current_node->next == NULL){
                 current_node->next = nodeToAdd;
-                return;
+                // printf(headCustomQueueNode);
+                return headCustomQueueNode;
             }
         }
     }
@@ -72,7 +76,7 @@ cqnShorthand *getNodeAtIndex(struct customQueueNode* headCustomQueueNode, int in
 }
 
 // Removes the node of a linked list at a given index, and returns the index of the node 
-int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt){
+cqnShorthand *removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRemoveAt){
     struct customQueueNode* current_node = headCustomQueueNode;
     struct customQueueNode* previous_node = NULL;
     int currentIndex = 0;
@@ -80,18 +84,33 @@ int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRe
     for (; current_node != NULL; current_node = current_node->next){
         if (currentIndex == indexToRemoveAt){
             // if we're removing the first node, and its next node is null
-            if (currentIndex == 0 && current_node->next == NULL){
-                // just set the head of the linked list to NULL
-                headCustomQueueNode = NULL;
-                return 0; // return 0 (signifies node at index 0 was deleted)
+            if (currentIndex == 0){
+                // 
+                headCustomQueueNode = current_node->next;
+
+                // correct the indices of the queue before returning
+                int counter = 0;
+                for (struct customQueueNode* n = headCustomQueueNode; n != NULL; n = n->next){
+                    n->index = counter;
+                    counter++;
+                }
+
+                return headCustomQueueNode; // return 0 (signifies node at index 0 was deleted)
             }
-            
-            // if we're not removing the first node, we want to have the previous one link to
+
             previous_node->next = current_node->next;
-            int indexOfNodeDeleted = current_node->index;
             free(current_node);
             current_node = NULL;
-            return indexOfNodeDeleted; // return indexOfNodeDeleted (signifies node at that index was deleted)
+
+            
+            // correct the indices of the queue before returning
+            int counter = 0;
+            for (struct customQueueNode* n = headCustomQueueNode; n != NULL; n = n->next){
+                n->index = counter;
+                counter++;
+            }
+
+            return headCustomQueueNode; // return indexOfNodeDeleted (signifies node at that index was deleted)
         }
 
         // if we aren't at the node yet, set the previous node to our current node before advancing it
@@ -100,7 +119,7 @@ int removeNodeAtIndex(struct customQueueNode* headCustomQueueNode, int indexToRe
     }
 
     // if we never returned the function, a node at that index doesn't exist
-    return -1;
+    return headCustomQueueNode;
 }
 
 void memorySetup() {
@@ -112,18 +131,34 @@ void memorySetup() {
     partitionArray[5].number = 6; partitionArray[5].size = 2; partitionArray[5].occupyingPID = -1;
 
     for (int i = 0; i < 100; i++){
+        struct PCB* newPCB = malloc(sizeof(struct PCB));
+        PCBArray[i] = newPCB;
         PCBArray[i]->PID = 0;
+        PCBArray[i]->state = NEW;
     }
+
+    fprintf(outputFilePointer, "+------------------------------------------------+\n");
+    fprintf(outputFilePointer, "Time of Transition |PID | Old State | New State |\n");
+    fprintf(outputFilePointer, "+------------------------------------------------+\n");
+
+    fprintf(outputSecondFilePointer, "+------------------------------------------------------------------------------------------+\n");
+    fprintf(outputSecondFilePointer, "|Time of Event |Memory Used | Partitions State |Total Free Memory |Usable Free Memory \n");
+    fprintf(outputSecondFilePointer, "+------------------------------------------------------------------------------------------+\n");
 }
 
-void terminateProgram(struct PCB* pcb) {
+struct PCB *terminateProgram(struct PCB* pcb) {
    partitionArray[pcb->partitionInUse - 1].occupyingPID = -1;
    pcb->partitionInUse = 0;
    pcb->state = TERMINATED;
+
+   recordMemoryStatus(outputSecondFilePointer, cpu_time);
+
+    return pcb;
 }
 
 bool programs_done() { //checks if program is done
-    for (int i = 0; PCBArray[i]->PID == 0; i++) {
+    for (int i = 0; PCBArray[i]->PID != 0; i++) {
+
         if (PCBArray[i]->state != TERMINATED) {
             return false;
         }
@@ -131,21 +166,30 @@ bool programs_done() { //checks if program is done
     return true;
 }
 
-pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
+struct returnPCB *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
     int readyQueueLength = customQueueLength(headReadyQueueNode);
 
     if (readyQueueLength == 0){
-        // Do nothing
+        return NULL;
     }
     else if (readyQueueLength == 1){
         struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
-        free(headReadyQueueNode); // free the head ready queue node
-        headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return pcbToReturn; // return the pcb we took before freeing the node
+
+        struct customQueueNode *nodeToRemove = headReadyQueueNode;
+        headReadyQueueNode = NULL;
+
+        free(nodeToRemove);
+
+        struct returnPCB* pcbReturnStruct = malloc(sizeof(struct returnPCB));
+        pcbReturnStruct->pcb = pcbToReturn;
+        pcbReturnStruct->cqn = headReadyQueueNode;
+
+        return pcbReturnStruct; // return the pcb we took before freeing the node
     }
     else{
         // readyQueueLength >= 2
         // need to choose the best to select
+        // printf("two program or more\n");
 
         struct customQueueNode* earliestArrivingNode = headReadyQueueNode;
         struct customQueueNode* current_node = headReadyQueueNode->next;
@@ -153,7 +197,7 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
         // find the earliest arriving node
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived earlier than
-            if (current_node->queueArrivalTime < earliestArrivingNode->queueArrivalTime){
+            if (current_node->pcb->Arrival_Time < earliestArrivingNode->pcb->Arrival_Time){
                 earliestArrivingNode = current_node;
             }
         }
@@ -162,7 +206,7 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
         // find the node with the lowest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
         for (; current_node != NULL; current_node = current_node->next){
             // if the current node arrived at the same time as the earliest arriving node
-            if (current_node->queueArrivalTime == earliestArrivingNode->queueArrivalTime){
+            if (current_node->pcb->Arrival_Time == earliestArrivingNode->pcb->Arrival_Time){
                 // if th current node has a lower pid
                 if (current_node->pcb->PID < earliestArrivingNode->pcb->PID){
                     earliestArrivingNode = current_node;
@@ -173,88 +217,104 @@ pcbShorthand *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueN
         // by this time we've selected the earliest arriving node, and if there are multiple, we chose the one with the lowest pid
         struct PCB* pcbSelected = earliestArrivingNode->pcb;
         int indexOfNodeToDelete = earliestArrivingNode->index;
-        removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
-        return pcbSelected; // return the pcb of the program that we've selected to run
+        
+        /*
+        printf("before removing the node we're trying to select, ready queue looks like: \n");
+        for (struct customQueueNode* cNR = headReadyQueueNode; cNR != NULL; cNR = cNR->next){
+            printf("Program %d\n", cNR->pcb->PID);
+        }
+        */
+
+        headReadyQueueNode = removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
+
+        /*
+        printf("after removing the node we're trying to select, ready queue looks like: \n");
+        for (struct customQueueNode* cNR2 = headReadyQueueNode; cNR2 != NULL; cNR2 = cNR2->next){
+            printf("Program %d\n", cNR2->pcb->PID);
+        }
+        */
+
+        /*
+        printf("Programs in the ready queue after selection should be:\n");
+        for (struct customQueueNode* cNR = headReadyQueueNode; cNR != NULL; cNR = cNR->next){
+            printf("Program %d\n", cNR->pcb->PID);
+        }
+        */
+
+        struct returnPCB* pcbReturnStruct = malloc(sizeof(struct returnPCB));
+        pcbReturnStruct->pcb = pcbSelected;
+        pcbReturnStruct->cqn = headReadyQueueNode;
+
+        return pcbReturnStruct; // return the pcb of the program that we've selected to run
     }
 
     // the function should never get to this point
 }
 
 pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode) {
-    int readyQueueLength = customQueueLength(headReadyQueueNode);
-
-    if (readyQueueLength == 0){
-        // Do nothing
-    }
-    else if (readyQueueLength == 1){
-        struct PCB* pcbToReturn = headReadyQueueNode->pcb; // get the pcb from the node
-        free(headReadyQueueNode); // free the head ready queue node
-        headReadyQueueNode = NULL; // set the head of the ready queue node list to NULL
-        return pcbToReturn; // return the pcb we took before freeing the node
-    }
-    else{
-        // readyQueueLength >= 2
-        // need to choose the best to select
-        // PRIORITY: Task with the smallest run time left
-
-        struct customQueueNode* smallestRunTimeLeftNode = headReadyQueueNode;
-        struct customQueueNode* current_node = headReadyQueueNode->next;
-
-        // find the node with the smallest run time left
-        for (; current_node != NULL; current_node = current_node->next){
-            // if the current node arrived earlier than
-            if (current_node->pcb->Remaining_CPU < smallestRunTimeLeftNode->pcb->Remaining_CPU){
-                smallestRunTimeLeftNode = current_node;
-            }
-        }
-
-        current_node = headReadyQueueNode;
-        // find the node with the lowest pid of those that have arrived the earliest (in the case where there are multiple earliest arriving nodes)
-        for (; current_node != NULL; current_node = current_node->next){
-            // if the current node arrived at the same time as the earliest arriving node
-            if (current_node->pcb->Remaining_CPU == smallestRunTimeLeftNode->pcb->Remaining_CPU){
-                // if th current node has a lower pid
-                if (current_node->pcb->PID < smallestRunTimeLeftNode->pcb->PID){
-                    smallestRunTimeLeftNode = current_node;
-                }
-            }
-        }
-
-        // by this time we've selected the node with the smallest, and if there are multiple, we chose the one with the lowest pid
-        struct PCB* pcbSelected = smallestRunTimeLeftNode->pcb;
-        int indexOfNodeToDelete = smallestRunTimeLeftNode->index;
-        removeNodeAtIndex(headReadyQueueNode, indexOfNodeToDelete); // remove the node that we selected from the ready queue
-        return pcbSelected; // return the pcb of the program that we've selected to run
-    }
-
-    // the function should never get to this point
+    
 }
 
 void fcfsScheduler() {
     struct PCB* runningPCB = NULL;
-    unsigned int runTimeLeft = 0;
+    int runTimeLeft = 0;
     struct customQueueNode* headReadyQueueNode = NULL;
     struct customQueueNode* headWaitingQueueNode = NULL;
+    cpu_time = 0;
+    
+    recordMemoryStatus(outputSecondFilePointer, cpu_time);
 
     while (!programs_done()) {
-        
         // checking what's arrived (NEW)
-        for (int i = 0; PCBArray[i]->PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+        // printf("t-%d\n", cpu_time);
+
+        // check if anything stops running at this second
+        if (runningPCB != NULL){
+            if (runningPCB->Remaining_CPU <= 0 && runTimeLeft != 0){
+                // terminate
+                // Record execution
+                // printf("running -> terminated @ %d\n", cpu_time);
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 4); // RUNNING -> TERMINATED
+                // terminate the program (records memory status)
+                runningPCB = terminateProgram(runningPCB);
+
+                runningPCB = NULL;
+            }
+            else if (runTimeLeft == 0){
+                // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
+                runningPCB->state = WAITING;
+
+                headWaitingQueueNode = customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
+
+                // Record execution output
+                // printf("running -> waiting @ %d with pid %d\n\n", cpu_time, runningPCB->PID);
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
+
+                // reset runningPCB to NULL
+                runningPCB = NULL;
+            }
+        }
+
+        for (int i = 0; PCBArray[i]->PID != 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
+            // printf("Check what's arrived?\n");
             // if the current program has arrived and is new
-            if (PCBArray[i]->Arrival_Time >= cpu_time && PCBArray[i]->state == NEW) {
+            if (PCBArray[i]->Arrival_Time == cpu_time && PCBArray[i]->state == NEW) {
                 // look for a partition to assign it to from lowest to highest available memory       
                 for (int j = 5; j >= 0; j--){
                     // if the current partition is available
                     if (partitionArray[j].occupyingPID == -1){
                         // if the size available in the current partition is enough to store the program
                         if (partitionArray[j].size >= PCBArray[i]->Mem_Size){
+                            // printf("found a match1\n");
                             // set partition and pcb information to match each other (we store this program in this partition)
                             PCBArray[i]->partitionInUse = partitionArray[j].number;
                             partitionArray[j].occupyingPID = PCBArray[i]->PID;
                             // this program should go from new to ready now
                             PCBArray[i]->state = READY; // set to READY (1)
-                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
+                            headReadyQueueNode = customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
+
                             // Record execution + memory_status output
+                            // printf("NEW -> READY @ %d\n", cpu_time);
                             recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
                             recordMemoryStatus(outputSecondFilePointer, cpu_time);
                             break; // break because the search for an available partition is over
@@ -264,165 +324,78 @@ void fcfsScheduler() {
             }
         }
 
-        // check if something is running (RUNNING)
-        if (runningPCB != NULL){
-            // a program is currently running
-            if (runTimeLeft > 0){
-                if (runningPCB->Remaining_CPU == 0){
-                    // Record execution + memory_status output
-                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 4); // RUNNING -> TERMINATED
-                    recordMemoryStatus(outputSecondFilePointer, cpu_time);
-
-                    // terminate the program
-                    terminateProgram(runningPCB);
-                    runningPCB = NULL;
-                }
-            } 
-            else if (runTimeLeft == 0){
-                // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
-                runningPCB->state = WAITING;
-                customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
-
-                // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
-
-                // reset runningPCB to NULL
-                runningPCB = NULL;
-            }
-        }
-        else{
-            // a program needs to be assigned (READY)
-            runningPCB = fcfsSelectNextReadyProgram(headReadyQueueNode);
-            runTimeLeft = runningPCB->IO_Freq;
-
-            // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
-        }
-
         // process all waiting programs (WAITING)
         struct customQueueNode* current_node = headWaitingQueueNode;
         struct customQueueNode* next_node = NULL;
+
         for (; current_node != NULL; current_node = next_node){
             int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
             next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
 
             if (timeSpentWaiting == current_node->pcb->IO_Duration){
                 // the current program is done waiting
+                // gotta remove from the waiting queue
+                // +
                 // assign it back to ready queue
                 struct PCB* pcbToAssign = current_node->pcb;
-                pcbToAssign->state = READY;
-                customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
 
+                pcbToAssign->state = READY;
+                
+                headReadyQueueNode = customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
                 // Record execution output
+                // printf("waiting -> ready @ %d\n", cpu_time);
                 recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->PID, 3, 1); // WAITING -> READY
 
                 // remove it from waiting queue
                 int indexOfNodeToDelete = current_node->index;
-                removeNodeAtIndex(headWaitingQueueNode, indexOfNodeToDelete);
+
+                headWaitingQueueNode = removeNodeAtIndex(headWaitingQueueNode, indexOfNodeToDelete);
+
             }
         }
 
-        // after checking all PCBs at this time, update time
-        cpu_time++;
-    }
+        if (runningPCB == NULL){
+            // a program needs to be assigned (READY)
 
+            struct returnPCB* returnInformation = fcfsSelectNextReadyProgram(headReadyQueueNode);
+
+            if (returnInformation != NULL){
+                headReadyQueueNode = returnInformation->cqn;
+                runningPCB = returnInformation->pcb;
+                
+                free(returnInformation);
+                returnInformation = NULL;
+            }
+
+            // printf(runningPCB);
+            if (runningPCB != NULL){ // if we found a valid program to run
+                runTimeLeft = runningPCB->IO_Freq;
+
+                // Record execution output
+                // printf("ready -> running @ %d with pid %d\n", cpu_time, runningPCB->PID);
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
+            }
+        }
+
+        cpu_time++;
+
+        // check if something is running (RUNNING)
+        if (runningPCB != NULL){
+            // a program is currently running
+            (runningPCB->Remaining_CPU)--;
+            runTimeLeft--;
+        }
+        
+        // limit the simulation time artificially
+        if (cpu_time >= 250){
+            break;
+        }
+        
+    }
 }
 
 void PriorityScheduler() {
-    struct PCB* runningPCB = NULL;
-    unsigned int runTimeLeft = 0;
-    struct customQueueNode* headReadyQueueNode = NULL;
-    struct customQueueNode* headWaitingQueueNode = NULL;
-
-    while (!programs_done()) {
-        
-        // checking what's arrived (NEW)
-        for (int i = 0; PCBArray[i]->PID == 0; i++) { //this loop checks each PCB in PCB array for if any process has arrived
-            // if the current program has arrived and is new
-            if (PCBArray[i]->Arrival_Time >= cpu_time && PCBArray[i]->state == NEW) {
-                // look for a partition to assign it to from lowest to highest available memory       
-                for (int j = 5; j >= 0; j--){
-                    // if the current partition is available
-                    if (partitionArray[j].occupyingPID == -1){
-                        // if the size available in the current partition is enough to store the program
-                        if (partitionArray[j].size >= PCBArray[i]->Mem_Size){
-                            // set partition and pcb information to match each other (we store this program in this partition)
-                            PCBArray[i]->partitionInUse = partitionArray[j].number;
-                            partitionArray[j].occupyingPID = PCBArray[i]->PID;
-                            // this program should go from new to ready now
-                            PCBArray[i]->state = READY; // set to READY (1)
-                            customQueueAddNode(headReadyQueueNode, PCBArray[i], cpu_time);
-                            // Record execution + memory_status output
-                            recordStateTransition(outputFilePointer, cpu_time, PCBArray[i]->PID, 0, 1); // NEW -> READY
-                            recordMemoryStatus(outputSecondFilePointer, cpu_time);
-                            break; // break because the search for an available partition is over
-                        }
-                    }
-                }    
-            }
-        }
-
-        // check if something is running (RUNNING)
-        if (runningPCB != NULL){
-            // a program is currently running
-            if (runTimeLeft > 0){
-                if (runningPCB->Remaining_CPU == 0){
-                    // Record execution + memory_status output
-                    recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 4); // RUNNING -> TERMINATED
-                    recordMemoryStatus(outputSecondFilePointer, cpu_time);
-
-                    // terminate the program
-                    terminateProgram(runningPCB);
-                    runningPCB = NULL;
-                }
-            } 
-            else if (runTimeLeft == 0){
-                // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
-                runningPCB->state = WAITING;
-                customQueueAddNode(headWaitingQueueNode, runningPCB, cpu_time);
-
-                // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
-
-                // reset runningPCB to NULL
-                runningPCB = NULL;
-            }
-        }
-        else{
-            // a program needs to be assigned (READY)
-            runningPCB = epSelectNextReadyProgram(headReadyQueueNode);
-            runTimeLeft = runningPCB->IO_Freq;
-
-            // Record execution output
-            recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 1, 2); // READY -> RUNNING
-        }
-
-        // process all waiting programs (WAITING)
-        struct customQueueNode* current_node = headWaitingQueueNode;
-        struct customQueueNode* next_node = NULL;
-        for (; current_node != NULL; current_node = next_node){
-            int timeSpentWaiting = cpu_time - current_node->queueArrivalTime; // as low as 0
-            next_node = current_node->next; // point to next node independently, since we might delete the current node and still need to jump to the next
-
-            if (timeSpentWaiting == current_node->pcb->IO_Duration){
-                // the current program is done waiting
-                // assign it back to ready queue
-                struct PCB* pcbToAssign = current_node->pcb;
-                pcbToAssign->state = READY;
-                customQueueAddNode(headReadyQueueNode, pcbToAssign, cpu_time);
-
-                // Record execution output
-                recordStateTransition(outputFilePointer, cpu_time, pcbToAssign->PID, 3, 1); // WAITING -> READY
-
-                // remove it from waiting queue
-                int indexOfNodeToDelete = current_node->index;
-                removeNodeAtIndex(headWaitingQueueNode, indexOfNodeToDelete);
-            }
-        }
-
-        // after checking all PCBs at this time, update time
-        cpu_time++;
-    }
+    
 }
 
 void RoundRobinScheduler() {
@@ -430,25 +403,24 @@ void RoundRobinScheduler() {
 }
 
 void InputFileProcesser(FILE* traceFilePointer) {
-    // 0, 1, 0, 50, 10, 1 instruction parsing
+    // 15, 10, 0, 25, 11, 3 instruction parsing
     unsigned int counter = 0;
 
     while(fgets(buffer, BUFFER_SIZE, traceFilePointer)) {
-        struct PCB* newPCB = malloc(sizeof(struct PCB));
-        PCBArray[counter] = newPCB;
-
-        char *token = strtok(buffer, ","); // "0"
+        char *token = strtok(buffer, ","); // "15"
         PCBArray[counter]->PID = atoi(token);
-        token = strtok(buffer, ","); // "1"
+        token = strtok(NULL, ","); // "10"
         PCBArray[counter]->Mem_Size = atoi(token);
-        token = strtok(buffer, ","); // "0"
+        token = strtok(NULL, ","); // "0"
         PCBArray[counter]->Arrival_Time = atoi(token);
-        token = strtok(buffer, ","); // "50"
+        token = strtok(NULL, ","); // "25"
         PCBArray[counter]->CPU_Time = atoi(token);
-        token = strtok(buffer, ","); // "10"
+        token = strtok(NULL, ","); // "11"
         PCBArray[counter]->IO_Freq = atoi(token);
-        token = strtok(buffer, ","); // "1"
+        token = strtok(NULL, ","); // "3"
         PCBArray[counter]->IO_Duration = atoi(token);
+
+        PCBArray[counter]->Remaining_CPU = PCBArray[counter]->CPU_Time;
 
         counter++;
     }
@@ -478,7 +450,7 @@ void recordStateTransition(FILE* execution_file, int timeOfTransition, unsigned 
         case 4: strcpy(newStateName, "TERMINATED"); break;
     }
 
-    fprintf(execution_file, "| %d | %d | %s | %s | \n", timeOfTransition, pid, oldStateName, newStateName);
+    fprintf(execution_file, "| %d               | %d | %s       | %s        | \n", timeOfTransition, pid, oldStateName, newStateName);
 }
 
 void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
@@ -495,7 +467,7 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
         }
         else{
             // partition is occupied by a program
-            for (int j = 0; PCBArray[j]->PID == 0; i++) {
+            for (int j = 0; PCBArray[j]->PID != 0; j++) {
                 if (PCBArray[j]->PID == partitionArray[i].occupyingPID){
                     // this is the program that occupies it
                     totalFreeMemory += (partitionArray[i].size - PCBArray[j]->Mem_Size);
@@ -506,12 +478,12 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
     }
 
     // calculate memory used
-    int memoryUsed = MEMORY_IN_PARTITIONS - usableFreeMemory;
+    int memoryUsed = 100 - totalFreeMemory;
 
-    fprintf(memory_status_file, "| %d | %d |", timeOfEvent, memoryUsed);
+    fprintf(memory_status_file, "| %d           | %d         |", timeOfEvent, memoryUsed);
     
     for (int i = 0; i < 6; i++){
-        if (i == 6 - 1){
+        if (i == 5){
             fprintf(memory_status_file, "%d |", partitionArray[i].occupyingPID);
         }
         else{
@@ -519,26 +491,26 @@ void recordMemoryStatus(FILE* memory_status_file, int timeOfEvent) {
         }
     }
 
-    fprintf(memory_status_file, " %d | %d |\n", totalFreeMemory, usableFreeMemory);
+    fprintf(memory_status_file, " %d            | %d            |\n", totalFreeMemory, usableFreeMemory);
 }
 
 int main(int argc, char* argv[])
 {
-    // initializing partition array and pcb array
-    memorySetup();
-
     // assign MyTraceFile1.txt to traceFilePointer in read mode
-    traceFilePointer = fopen(argv[1], "r"); // argv[1]
+    traceFilePointer = fopen("input_test.txt", "r"); // argv[0]
 
     // take the chosen algorithm from the second argument
     char chosenAlgorithm[10];
-    strcpy(chosenAlgorithm, argv[2]);
+    strcpy(chosenAlgorithm, "FCFS"); // argv[1]
 
     // assign ProgramOutput1.txt to outputFilePointer in write mode
     outputFilePointer = fopen("execution.txt", "w");
 
     // assign system_status.txt to outputSecondFilePointer in write mode
-    outputSecondFilePointer = fopen("memory_status", "w");
+    outputSecondFilePointer = fopen("memory_status.txt", "w");
+
+    // initializing partition array and pcb array
+    memorySetup();
 
     // load PCBs from input file
     InputFileProcesser(traceFilePointer);
