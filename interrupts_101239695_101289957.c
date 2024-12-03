@@ -386,11 +386,6 @@ void fcfsScheduler() {
             runTimeLeft--;
         }
         
-        // limit the simulation time artificially
-        if (cpu_time >= 250){
-            break;
-        }
-        
     }
 }
 
