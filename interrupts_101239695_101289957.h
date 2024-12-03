@@ -47,7 +47,7 @@ void memorySetup();
 struct PCB *terminateProgram(struct PCB* pcb);
 bool programs_done();
 struct returnPCB *fcfsSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
-pcbShorthand *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
+struct returnPCB *epSelectNextReadyProgram(struct customQueueNode* headReadyQueueNode);
 void FcfsScheduler();
 void PriorityScheduler();
 void RoundRobinScheduler();
