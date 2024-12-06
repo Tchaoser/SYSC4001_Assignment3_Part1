@@ -614,7 +614,7 @@ void RoundRobinScheduler() {
 
                 runningPCB = NULL;
             }
-            else if (runTimeLeft == 0 || runTimeElapsed == timeoutValue){
+            else if (runTimeLeft == 0){
                 // runTimeLeft 0, and we haven't terminated the program, so it goes to waiting
                 runningPCB->state = WAITING;
 
@@ -623,6 +623,17 @@ void RoundRobinScheduler() {
                 // Record execution output
                 // printf("running -> waiting @ %d with pid %d\n\n", cpu_time, runningPCB->PID);
                 recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 3); // RUNNING -> WAITING
+
+                // reset runningPCB to NULL
+                runningPCB = NULL;
+            }
+            else if (runTimeElapsed == timeoutValue){
+                
+                runningPCB->state = READY;
+
+                headReadyQueueNode = customQueueAddNode(headReadyQueueNode, runningPCB, cpu_time);
+
+                recordStateTransition(outputFilePointer, cpu_time, runningPCB->PID, 2, 1); // RUNNING -> READY
 
                 // reset runningPCB to NULL
                 runningPCB = NULL;
@@ -828,10 +839,10 @@ int main(int argc, char* argv[])
     char chosenAlgorithm[10];
     strcpy(chosenAlgorithm, argv[2]); // argv[2]
     // assign ProgramOutput1.txt to outputFilePointer in write mode
-    outputFilePointer = fopen("execution.txt", "w");
+    outputFilePointer = fopen("execution_101239695_101289957.txt", "w");
 
     // assign system_status.txt to outputSecondFilePointer in write mode
-    outputSecondFilePointer = fopen("memory_status.txt", "w");
+    outputSecondFilePointer = fopen("memory_status_101239695_101289957.txt", "w");
 
     // initializing partition array and pcb array
     memorySetup();

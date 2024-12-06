@@ -1,3 +1,0 @@
-FORK, 42
-EXEC program2, 88
-CPU, 25

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gcc interrupts_101239695_101289957.c interrupts_101239695_101289957.h -o sim
+./sim input_data_1.txt RR
+./sim input_data_2.txt RR
+./sim input_data_3.txt RR
+./sim input_data_4.txt RR
+./sim input_data_5.txt RR
+./sim input_data_6.txt RR
+./sim input_data_7.txt RR
+./sim input_data_8.txt RR
+./sim input_data_9.txt RR
+./sim input_data_10.txt RR
